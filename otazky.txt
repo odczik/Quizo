@@ -1,1 +1,6 @@
-Co teda delame?
+stahnout si postman
+
+npm install
+npm run dev
+
+php -S localhost:8000
