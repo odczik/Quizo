@@ -1,6 +1,17 @@
 stahnout si postman
 
+cd .\frontend\
 npm install
 npm run dev
 
-php -S localhost:8000
+kdyz mam stare php
+cd .\backend\web-server\
+composer install --ignore-platform-reqs
+php artisan key:generate
+..\..\php-8.5.5\php.exe artisan serve
+
+kdyz mam normalni php
+cd .\backend\web-server\
+composer install
+php artisan key:generate
+php artisan serve
