@@ -13,7 +13,7 @@ export function Button({ children, variant = 'primary', className = '', ...props
 
     return (
         <button 
-            className={`${baseStyles} ${variants[variant]} ${className}`} 
+            className={`${'cursor-pointer ' + baseStyles} ${variants[variant]} ${className}`} 
             {...props}
         >
             {children}
