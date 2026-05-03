@@ -16,9 +16,10 @@ import { PlayerBadge } from '../components/PlayerBadge';
 import { ToggleSwitch } from '../components/ToggleSwitch';
 import { Modal } from '../components/Modal';
 import { useState } from 'react';
+import { useToggle } from '~/hooks/useToggle';
 
 export default function ComponentsDemo() {
-    const [isToggleOn, setIsToggleOn] = useState(false);
+    const [isToggleOn, setIsToggleOn] = useToggle(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     return (
         <div className="min-h-screen bg-gray-100 p-8 font-sans">
@@ -168,6 +169,20 @@ export default function ComponentsDemo() {
                                     onChange={() => {}} 
                                     label="Friendly Nickname Generator" 
                                     description="Force players to use pre-approved names."
+                                />
+                                <ToggleSwitch 
+                                    checked={false} 
+                                    onChange={() => {}} 
+                                    disabled
+                                    label="Pro Feature" 
+                                    description="You must subscribe to use this toggle."
+                                />
+                                <ToggleSwitch 
+                                    checked={true} 
+                                    onChange={() => {}} 
+                                    disabled
+                                    label="Pro Feature" 
+                                    description="You must subscribe to use this toggle."
                                 />
                             </div>
                         </div>

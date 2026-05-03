@@ -16,7 +16,7 @@ export function PlayerBadge({ name, onKick }: PlayerBadgeProps) {
             {onKick && (
                 <button 
                     onClick={onKick}
-                    className="ml-3 text-white/70 hover:text-white transition-colors"
+                    className="ml-3 text-white/70 hover:text-white transition-colors cursor-pointer"
                     title="Kick player"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
