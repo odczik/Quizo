@@ -77,7 +77,7 @@ export default function ComponentsDemo() {
                             title={
                                 <div className="flex justify-between">
                                 <span>Biology 101</span>
-                                <span className="text-sm font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Draft</span>
+                                <Badge variant='blue'>Draft</Badge>
                                 </div>
                             }
                             footer={
