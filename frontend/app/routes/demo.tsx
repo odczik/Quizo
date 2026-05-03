@@ -169,16 +169,10 @@ export default function ComponentsDemo() {
                                     onChange={() => {}} 
                                     label="Friendly Nickname Generator" 
                                     description="Force players to use pre-approved names."
+                                    disabled
                                 />
                                 <ToggleSwitch 
                                     checked={false} 
-                                    onChange={() => {}} 
-                                    disabled
-                                    label="Pro Feature" 
-                                    description="You must subscribe to use this toggle."
-                                />
-                                <ToggleSwitch 
-                                    checked={true} 
                                     onChange={() => {}} 
                                     disabled
                                     label="Pro Feature" 
