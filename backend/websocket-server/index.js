@@ -58,8 +58,9 @@ wss.on('connection', (ws) => {
 				case 'join_game':
 					if(rooms[data.gameId]) {
 						rooms[data.gameId].players.push(ws);
+						ws.username = data.username; // Store username on the socket for easy access
 						ws.roomId = data.gameId; // Store which room they're in for easy cleanup later
-						ws.send(JSON.stringify({ type: 'game_joined', gameId: data.gameId }));
+						ws.send(JSON.stringify({ type: 'game_joined', gameId: data.gameId, players: rooms[data.gameId].players.map(p => p.username) }));
 						console.log(rooms)
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));

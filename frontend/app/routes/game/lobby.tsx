@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
+import { PlayerBadge } from "~/components/PlayerBadge";
 import { Spinner } from "~/components/Spinner";
 import { useGameSocket } from "~/context/WebSocketContext";
 
@@ -12,6 +13,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
     const [pin, setPin] = useState<string>(params.id?.toString() || "");
     const [playerName, setPlayerName] = useState<string>("");
     const [joined, setJoined] = useState(false);
+    const [players, setPlayers] = useState<string[]>([]); // Track players in lobby
 
     const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         // Limit to 6 characters
@@ -41,6 +43,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     break;
                 case 'game_joined':
                     console.log('Successfully joined game:', lastMessage.gameId);
+                    setPlayers(lastMessage.players); // Update player list when someone joins
                     setJoined(true);
                     break;
                 case 'error':
@@ -62,18 +65,28 @@ export default function Lobby({ params }: { params: { id?: string } }) {
             alert("Please enter a name");
             return;
         }
-        sendMessage("join_game", { gameId: pin, name: playerName });
+        sendMessage("join_game", { gameId: pin, username: playerName });
     };
 
     return (
         <>
         {joined ? (
+            // Waiting for host to start the game - this is where you could show a list of players who have joined, etc.
             <div className="text-center space-y-4">
                 <h1 className="text-6xl font-bold mb-8">Waiting for Host to Start the Game...</h1>
+                <div className="bg-indigo-500 p-8 rounded border-4 border-dashed border-gray-300 min-h-[200px]">
+                    <div className="flex flex-wrap gap-4 justify-center">
+                        {players.map((player) => (
+                            <PlayerBadge key={player} name={player} onKick={() => alert('Kicked!')} />
+                        ))}
+                    </div>
+                </div>
             </div>
         ) : (
+            // Initial lobby view where player enters game pin and name
             <div className="text-center space-y-4">
                 {gameFound ? (
+                    // If game is found, ask for player name
                     <>
                     <h1 className="text-6xl font-bold mb-8">Enter Your Name</h1>
                     <Input 
@@ -85,6 +98,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     <Button onClick={() => joinGame()}>Join Game</Button>
                     </>
                 ) : (
+                    // Initial view to enter game pin
                     <>
                     <h1 className="text-6xl font-bold mb-8">Enter Game Pin</h1>
                     <Input
