@@ -9,6 +9,9 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "jsonwebtoken": "^9.0.3",
+    "kysely": "^0.28.17",
     "ws": "^8.20.0"
   }
 }
