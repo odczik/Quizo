@@ -4,6 +4,7 @@ export function meta() {
 }
 
 import { Button } from '../components/Button';
+import { Link } from '../components/Link';
 import { Input } from '../components/Input';
 import { Card } from '../components/Card';
 import { AnswerButton } from '../components/AnswerButton';
@@ -35,6 +36,16 @@ export default function ComponentsDemo() {
                         <Button variant="primary">Primary Button</Button>
                         <Button variant="secondary">Secondary Button</Button>
                         <Button variant="primary" disabled className="opacity-50 cursor-not-allowed">Disabled</Button>
+                    </div>
+                </ComponentShowcase>
+
+                {/* Links Section */}
+                <ComponentShowcase title="Link.tsx">
+                    <div className="flex flex-wrap gap-6 items-center">
+                        <Link to="/demo">Standard Link</Link>
+                        <Link to="/demo" variant="primary">Primary Link</Link>
+                        <Link to="/demo" variant="subtle">Subtle Link</Link>
+                        <Link to="/demo" variant="danger">Danger Link</Link>
                     </div>
                 </ComponentShowcase>
 

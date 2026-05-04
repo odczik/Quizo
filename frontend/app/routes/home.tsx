@@ -1,6 +1,5 @@
 import type { Route } from "./+types/home";
-import { Button } from '../components/Button';
-import { formatDate } from '../utils/formatters';
+import { Link } from "~/components/Link";
 export function meta({}: Route.MetaArgs) {
     return [
         { title: "New React Router App" },
@@ -10,10 +9,9 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
     return (
-        <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-            <Button variant="primary" onClick={() => window.location.href = '/demo'}>
-                Visit Component Demo Page
-            </Button>
+        <div>
+            <h1>Home</h1>
+            <Link to="/game" variant="primary">Game</Link>
         </div>
     );
 }
