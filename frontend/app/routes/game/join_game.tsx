@@ -38,7 +38,7 @@ export default function GameScreen() {
                 onClick={() => joinGame()} 
                 disabled={pin.length !== 6}
             >
-                Join Game
+                Enter
             </Button>
         </div>
     );

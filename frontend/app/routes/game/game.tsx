@@ -1,9 +1,10 @@
-import type { Route } from "./+types/game";
 import { useEffect } from "react";
 import { Button } from "~/components/Button";
+import { Input } from "~/components/Input";
+import { Spinner } from "~/components/Spinner";
 import { useGameSocket } from "~/context/WebSocketContext";
 
-export default function Game({ params }: Route.ComponentProps) {
+export default function Game({ params }: { params: { id: string } }) {
     const { sendMessage, lastMessage, isConnected } = useGameSocket();
 
     // Listen for incoming messages specific to this component
@@ -13,16 +14,20 @@ export default function Game({ params }: Route.ComponentProps) {
         }
     }, [lastMessage]);
 
-    const handleAnswer = (answerId: number) => {
-        sendMessage('submit_answer', { answerId });
+    if (!isConnected) return <Spinner size="lg" />;
+
+    const join = () => {
+
     };
 
-    if (!isConnected) return <div>Reconnecting to server...</div>;
-
     return (
-        <div>
-            <Button onClick={() => handleAnswer(1)}>Red Triangle</Button>
-            <Button onClick={() => handleAnswer(2)}>Blue Diamond</Button>
+        <div className="text-center space-y-4">
+            <h1 className="text-6xl font-bold mb-8">Enter Your Name</h1>
+            <Input 
+                placeholder="Mike Oxlong" 
+                className="mb-4 !text-gray-100" 
+            />
+            <Button onClick={() => join()}>Join Game</Button>
         </div>
     );
 }
