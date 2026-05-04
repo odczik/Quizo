@@ -15,7 +15,7 @@ class AuthenticationController extends Controller
         $request->validate([
             'name' => 'required|min:3',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'password' => 'required|min:8|confirmed'
         ]);
         $user = User::create([
             'name' => $request->name,
@@ -24,27 +24,77 @@ class AuthenticationController extends Controller
         ]);
         return response()->json([$user, 201]);
     }
+
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required'
         ]);
+
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         $request->session()->regenerate();
 
-        return response()->json([Auth::user(), 200]);
+        return response()->json([Auth::user()]);
     }
-    public function userInfo(Request $request)
+
+    public function logOut(Request $request)
+    {
+        // Revoke any personal access tokens (if used) and end the session
+        if ($request->user()) {
+            if (method_exists($request->user(), 'tokens')) {
+                $request->user()->tokens()->delete();
+            }
+        }
+
+        //Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->noContent();
+    }
+
+        public function getUserData(Request $request)
     {
         return response()->json($request->user());
     }
-    public function logOut(Request $request)
+
+        public function updateUserData(Request $request)
     {
-        $request->user()->tokens()->delete();
-        return response()->json([null, 204]);
+        $request->validate([
+            'name' => 'sometimes|required|min:3',
+            'email' => 'sometimes|required|email|unique:users,email,' . $request->user()->id,
+        ]);
+
+        $request->user()->update($request->only(['name', 'email']));
+
+        return response()->json($request->user());
     }
+
+        public function updateUserPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:8|confirmed'
+        ]);
+
+        $request->user()->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['message' => 'Password updated successfully']);
+    }
+
+    public function deleteUser(Request $request)
+    {
+        /*$request->validate([
+            'password' => 'required|min:8|confirmed'
+        ]);*/
+        
+        $request->user()->delete();
+        return response()->json(['message' => 'User deleted successfully']);
+    }
+
+
 }
