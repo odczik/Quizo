@@ -13,6 +13,12 @@ Kahoot clone
 
 ## backend
 
+### websocket-server
+
+`cd .\backend\websocket-server`
+`npm install`
+`node index.js`
+
 ### kdyz mam stare php
 `cd .\backend\web-server\`
 
@@ -29,4 +35,4 @@ Kahoot clone
 
 `php artisan key:generate`
 
-`php artisan serve`
+`php artisan serve
