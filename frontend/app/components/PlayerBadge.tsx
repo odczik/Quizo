@@ -6,12 +6,18 @@ export interface PlayerBadgeProps {
 }
 
 export function PlayerBadge({ name, onKick }: PlayerBadgeProps) {
-    // Generate a random fun background color for the user ticket
+    // Generate a fun background color deterministically based on the player's name
+    // This prevents hydration mismatches between SSR and Client rendering!
     const funColors = ['bg-pink-500', 'bg-purple-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500'];
-    const randomColor = React.useMemo(() => funColors[Math.floor(Math.random() * funColors.length)], []);
+    
+    const hash = name.split('').reduce((acc, char) => {
+        return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+    
+    const deterministicColor = funColors[Math.abs(hash) % funColors.length];
 
     return (
-        <div className={`relative inline-flex items-center px-4 py-2 rounded shadow-md text-white font-bold text-lg animate-bounce-in ${randomColor}`}>
+        <div className={`relative inline-flex items-center px-4 py-2 rounded shadow-md text-white font-bold text-lg animate-bounce-in ${deterministicColor}`}>
             <span>{name}</span>
             {onKick && (
                 <button 
