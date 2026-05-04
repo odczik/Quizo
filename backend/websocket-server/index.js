@@ -58,6 +58,7 @@ wss.on('connection', (ws) => {
 				case 'join_game':
 					if(rooms[data.gameId]) {
 						rooms[data.gameId].players.push(ws);
+						ws.roomId = data.gameId; // Store which room they're in for easy cleanup later
 						ws.send(JSON.stringify({ type: 'game_joined', gameId: data.gameId }));
 						console.log(rooms)
 					} else {
@@ -76,6 +77,14 @@ wss.on('connection', (ws) => {
             ws.close(1007, 'Invalid message format');
         }
     });
+
+	ws.on('close', () => {
+		console.log('Client disconnected');
+		// Clean up
+		if (ws.roomId && rooms[ws.roomId]) {
+			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
+		}
+	});
 });
 
 console.log(`WebSocket server is running on ws://localhost:${PORT}`);
