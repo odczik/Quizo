@@ -8,11 +8,13 @@ const wss = new WebSocketServer({ port: PORT });
 
 wss.on('connection', (ws) => {
     ws.isAuthenticated = false; // Mark as unauthenticated initially
+	ws.canAuthenticate = true; // Allow them to authenticate for a short window
 
-    // Set a timeout: If they don't authenticate within 3 seconds, terminate them
+    // Set a timeout: If they don't authenticate within 3 seconds
     const authTimeout = setTimeout(() => {
         if (!ws.isAuthenticated) {
-            ws.terminate('Authentication timeout');
+            // ws.terminate('Authentication timeout');
+			ws.canAuthenticate = false; // They can no longer authenticate
         }
     }, 3000);
 
@@ -23,6 +25,10 @@ wss.on('connection', (ws) => {
             // 1. Handle Authentication First
             if (!ws.isAuthenticated) {
                 if (data.type === 'authenticate') {
+					if (!ws.canAuthenticate) {
+						ws.close(1008, 'Authentication window expired');
+						return;
+					}
                     try {
                         const decoded = jwt.verify(data.token, 'your-secret');
                         ws.isAuthenticated = true;

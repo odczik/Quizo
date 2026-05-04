@@ -9,6 +9,7 @@ export default [
     
     // 2. The Game itself: uses game-layout (no Navbar/Footer, full screen)
     layout("routes/layouts/game-layout.tsx", [
-        route("game", "routes/game.tsx")
+        route("game", "routes/game/join_game.tsx"),
+        route("game/:id", "routes/game/game_container.tsx")
     ])
 ] satisfies RouteConfig;
