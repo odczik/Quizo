@@ -46,11 +46,17 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     setPlayers(lastMessage.players); // Update player list when someone joins
                     setJoined(true);
                     break;
+                case 'player_joined':
+                    console.log('Player joined:', lastMessage.username);
+                    setPlayers(prev => [...prev, lastMessage.username]);
+                    break;
+                case 'player_left':
+                    console.log('Player left:', lastMessage.username);
+                    setPlayers(prev => prev.filter(name => name !== lastMessage.username));
+                    break;
                 case 'error':
                     console.error('Error from server:', lastMessage.message);
-                    if(lastMessage.message === 'Game not found') {
-                        setError(lastMessage.message);
-                    }
+                    setError(lastMessage.message);
                     break;
                 default:
                     console.log('Unhandled message type:', lastMessage);
@@ -93,6 +99,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                         value={playerName}
                         onChange={(e) => setPlayerName(e.target.value)}
                         placeholder="Mike Oxlong" 
+                        error={error}
                         className="mb-4 !text-gray-100" 
                     />
                     <Button onClick={() => joinGame()}>Join Game</Button>

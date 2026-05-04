@@ -57,10 +57,32 @@ wss.on('connection', (ws) => {
 					break;
 				case 'join_game':
 					if(rooms[data.gameId]) {
-						rooms[data.gameId].players.push(ws);
-						ws.username = data.username; // Store username on the socket for easy access
-						ws.roomId = data.gameId; // Store which room they're in for easy cleanup later
-						ws.send(JSON.stringify({ type: 'game_joined', gameId: data.gameId, players: rooms[data.gameId].players.map(p => p.username) }));
+						// Store username and room info on the socket for easy access later
+						ws.username = data.username;
+						ws.roomId = data.gameId;
+
+						// Add player to the room if username is available
+						if(rooms[data.gameId].players.some(p => p.username === data.username)) {
+							ws.send(JSON.stringify({ type: 'error', message: 'Username already taken in this room' }));
+							return;
+						} else {
+							rooms[data.gameId].players.push(ws);
+						}
+
+						// Notify the joining player that they successfully joined
+						ws.send(JSON.stringify({ 
+							type: 'game_joined', 
+							gameId: data.gameId, 
+							players: rooms[data.gameId].players.map(p => p.username) 
+						}));
+						
+						// Notify other players in the room that a new player has joined
+						rooms[data.gameId].players.forEach(player => {
+							if(player !== ws) {
+								player.send(JSON.stringify({ type: 'player_joined', username: data.username }));
+							}
+						});
+
 						console.log(rooms)
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
@@ -84,6 +106,9 @@ wss.on('connection', (ws) => {
 		// Clean up
 		if (ws.roomId && rooms[ws.roomId]) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
+			rooms[ws.roomId].players.forEach(player => {
+				player.send(JSON.stringify({ type: 'player_left', username: ws.username }));
+			});
 		}
 	});
 });
