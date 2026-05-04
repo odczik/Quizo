@@ -18,10 +18,13 @@ import { ToggleSwitch } from '../components/ToggleSwitch';
 import { Modal } from '../components/Modal';
 import { useState } from 'react';
 import { useToggle } from '~/hooks/useToggle';
+import { useNotification } from '~/context/NotificationContext';
 
 export default function ComponentsDemo() {
     const [isToggleOn, setIsToggleOn] = useToggle(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const { notify } = useNotification();
+    
     return (
         <div className="min-h-screen bg-gray-100 p-8 font-sans">
             <div className="max-w-4xl mx-auto space-y-12">
@@ -210,6 +213,24 @@ export default function ComponentsDemo() {
                                 <p className="text-gray-700">Are you sure you want to delete <strong>Biology 101</strong>? This action cannot be undone and all associated questions will be destroyed.</p>
                             </Modal>
                         </div>
+                    </div>
+                </ComponentShowcase>
+
+                {/* Notifications Section */}
+                <ComponentShowcase title="NotificationContext.tsx" description="(Toast Notifications)">
+                    <div className="flex flex-wrap gap-4">
+                        <Button variant="secondary" onClick={() => notify("Here's some random info you should know.", "info")}>
+                            Show Info Toast
+                        </Button>
+                        <Button variant="primary" className="!bg-green-500 hover:!bg-green-600" onClick={() => notify("Game saved successfully!", "success")}>
+                            Show Success Toast
+                        </Button>
+                        <Button variant="primary" className="!bg-yellow-500 hover:!bg-yellow-600" onClick={() => notify("Warning: Internet connection unstable.", "warning")}>
+                            Show Warning Toast
+                        </Button>
+                        <Button variant="primary" className="!bg-red-500 hover:!bg-red-600" onClick={() => notify("Error: Invalid game PIN.", "error")}>
+                            Show Error Toast
+                        </Button>
                     </div>
                 </ComponentShowcase>
 
