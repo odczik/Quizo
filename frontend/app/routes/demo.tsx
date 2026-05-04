@@ -35,7 +35,7 @@ export default function ComponentsDemo() {
                     <div className="flex flex-wrap gap-4 items-center">
                         <Button variant="primary">Primary Button</Button>
                         <Button variant="secondary">Secondary Button</Button>
-                        <Button variant="primary" disabled className="opacity-50 cursor-not-allowed">Disabled</Button>
+                        <Button variant="primary" disabled>Disabled</Button>
                     </div>
                 </ComponentShowcase>
 
