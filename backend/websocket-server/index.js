@@ -3,8 +3,13 @@ const jwt = require('jsonwebtoken');
 const db = require('./db');
 
 const PORT = 8080;
-
 const wss = new WebSocketServer({ port: PORT });
+
+const rooms = {
+	"123123": {
+		players: []
+	}
+}; // In-memory storage for game rooms and their players
 
 wss.on('connection', (ws) => {
     ws.isAuthenticated = false; // Mark as unauthenticated initially
@@ -21,37 +26,52 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
+			console.log('> ', data);
 
-            // 1. Handle Authentication First
-            if (!ws.isAuthenticated) {
-                if (data.type === 'authenticate') {
+			// Handle different message types
+			switch (data.type) {
+				case 'authenticate':
 					if (!ws.canAuthenticate) {
 						ws.close(1008, 'Authentication window expired');
 						return;
 					}
-                    try {
-                        const decoded = jwt.verify(data.token, 'your-secret');
-                        ws.isAuthenticated = true;
-                        ws.user = decoded; // Store user info on the socket
-                        clearTimeout(authTimeout); // They are verified, cancel the kick out
-                        
-                        console.log(`User ${ws.user.id} matched and secured.`);
-                        ws.send(JSON.stringify({ type: 'authenticated', success: true }));
-                    } catch (err) {
-                        ws.close(1008, 'Invalid Token'); 
-                    }
-                } else {
-                    // They sent a normal game message before authenticating
-                    ws.close(1008, 'Please authenticate first');
-                }
-                return;
-            }
-
-            // 2. Handle Normal Game Logic (Only runs if ws.isAuthenticated is true)
-            if (data.type === 'submit_answer') {
-                console.log(`User ${ws.user.id} answered:`, data.answer);
-            }
-
+					try {
+						const decoded = jwt.verify(data.token, 'your-secret');
+						ws.isAuthenticated = true;
+						ws.user = decoded; // Store user info on the socket
+						clearTimeout(authTimeout); // They are verified, cancel the kick out
+						
+						console.log(`User ${ws.user.id} matched and secured.`);
+						ws.send(JSON.stringify({ type: 'authenticated', success: true }));
+					} catch (err) {
+						ws.close(1008, 'Invalid Token'); 
+					}
+					break;
+				case 'find_game':
+					if(rooms[data.gameId]) {
+						ws.send(JSON.stringify({ type: 'game_found', gameId: data.gameId }));
+					} else {
+						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
+						return;
+					}
+					break;
+				case 'join_game':
+					if(rooms[data.gameId]) {
+						rooms[data.gameId].players.push(ws);
+						ws.send(JSON.stringify({ type: 'game_joined', gameId: data.gameId }));
+						console.log(rooms)
+					} else {
+						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
+						return;
+					}
+					break;
+				case 'submit_answer':
+					console.log(`User ${ws.user?.id} answered:`, data.answer);
+					break;
+				default:
+					console.log('Unknown message type:', data.type);
+					break;
+			}
         } catch (e) {
             ws.close(1007, 'Invalid message format');
         }

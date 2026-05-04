@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router';
 
 // Define the shape of our context
 interface WebSocketContextType {
@@ -16,6 +17,8 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const [isConnected, setIsConnected] = useState(false);
     const [lastMessage, setLastMessage] = useState<any>(null);
 
+    const params = useParams(); // Get game ID from URL if needed for connection
+
     useEffect(() => {
         // Connect to your Node.js websocket server
         const ws = new WebSocket('ws://localhost:8080');
@@ -24,11 +27,15 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             console.log('Connected to Game Server');
             setIsConnected(true);
             
-            // Example: Authenticate immediately on connect (from our previous discussion)
-            // const token = localStorage.getItem('auth_token');
-            const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWQiOiJ0ZXN0aWQiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ.-HsQAb6O7Jko6P3B25IxIOS8k2Y5_Fm1fKhXhkpfSX8"
-            if (token) {
-                ws.send(JSON.stringify({ type: 'authenticate', token }));
+            if(params.id) {
+                // If we have a game ID, we can send it immediately to find that game room
+                ws.send(JSON.stringify({ type: 'find_game', gameId: params.id }));
+            } else {
+                const token = localStorage.getItem('auth_token');
+                // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWQiOiJ0ZXN0aWQiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ.-HsQAb6O7Jko6P3B25IxIOS8k2Y5_Fm1fKhXhkpfSX8"
+                if (token) {
+                    ws.send(JSON.stringify({ type: 'authenticate', token }));
+                }
             }
         };
 
