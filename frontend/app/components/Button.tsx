@@ -13,7 +13,7 @@ export function Button({ children, variant = 'primary', className = '', ...props
 
     return (
         <button 
-            className={`${'cursor-pointer ' + baseStyles} ${variants[variant]} ${className}`} 
+            className={`${'cursor-pointer ' + baseStyles} ${variants[variant]} ${className} ${props.disabled ? 'opacity-50 !cursor-not-allowed' : ''}`.trim()} 
             {...props}
         >
             {children}

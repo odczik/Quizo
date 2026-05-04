@@ -11,7 +11,8 @@ export default function MainLayout() {
                     <Link to="/" className="text-2xl font-bold text-black hover:none">Quizo</Link>
                     <ul className="flex gap-6 items-center">
                         <li><Link to="/demo" variant="subtle">Components Library Demo</Link></li>
-                        <li><Button variant="primary">Login</Button></li>
+                        <li><Button variant="secondary">Login</Button></li>
+                        <li><Button variant="primary" onClick={() => location.href = "/game"}>Join Game</Button></li>
                     </ul>
                 </nav>
             </header>
