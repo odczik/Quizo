@@ -4,7 +4,10 @@ export default [
     // 1. Everything else (Dashboard, Home, etc.): uses main-layout with Navbar & Footer
     layout("routes/layouts/main-layout.tsx", [
         index("routes/home.tsx"),
-        route("demo", "routes/demo.tsx")
+        route("demo", "routes/demo.tsx"),
+        // Auth routes
+        route("login", "routes/main/auth/login.tsx"),
+        route("register", "routes/main/auth/register.tsx")
     ]),
     
     // 2. The Game itself: uses game-layout (no Navbar/Footer, full screen)

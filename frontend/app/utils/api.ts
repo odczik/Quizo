@@ -85,3 +85,9 @@ export async function apiClient(endpoint: string, options: RequestInit = {}) {
 
     return response;
 }
+
+export default {
+    getCookie,
+    fetchCsrfToken,
+    apiClient,
+};
