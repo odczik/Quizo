@@ -3,19 +3,20 @@ export function meta() {
     return [{ title: "UI Components Demo" }];
 }
 
-import { Button } from '../components/Button';
-import { Link } from '../components/Link';
-import { Input } from '../components/Input';
-import { Card } from '../components/Card';
-import { AnswerButton } from '../components/AnswerButton';
+import { Button } from '~/components/Button';
+import { Link } from '~/components/Link';
+import { Input } from '~/components/Input';
+import { Select } from '~/components/Select';
+import { Card } from '~/components/Card';
+import { AnswerButton } from '~/components/AnswerButton';
 
-import { Badge } from '../components/Badge';
-import { ProgressBar } from '../components/ProgressBar';
-import { Spinner } from '../components/Spinner';
-import { ComponentShowcase } from '../components/ComponentShowcase';
-import { PlayerBadge } from '../components/PlayerBadge';
-import { ToggleSwitch } from '../components/ToggleSwitch';
-import { Modal } from '../components/Modal';
+import { Badge } from '~/components/Badge';
+import { ProgressBar } from '~/components/ProgressBar';
+import { Spinner } from '~/components/Spinner';
+import { ComponentShowcase } from '~/components/ComponentShowcase';
+import { PlayerBadge } from '~/components/PlayerBadge';
+import { ToggleSwitch } from '~/components/ToggleSwitch';
+import { Modal } from '~/components/Modal';
 import { useState } from 'react';
 import { useToggle } from '~/hooks/useToggle';
 import { useNotification } from '~/context/NotificationContext';
@@ -74,6 +75,34 @@ export default function ComponentsDemo() {
                         <Input 
                             label="" 
                             placeholder="No Label"
+                        />
+                    </div>
+                </ComponentShowcase>
+
+                {/* Selects Section */}
+                <ComponentShowcase title="Select.tsx">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                        <Select 
+                            label="Standard Select" 
+                            options={[
+                                { value: '1', label: 'Option 1' },
+                                { value: '2', label: 'Option 2' },
+                            ]}
+                        />
+                        <Select 
+                            label="Error Select" 
+                            error="Please select an option"
+                            options={[
+                                { value: '', label: 'Choose...' },
+                                { value: '1', label: 'Option 1' },
+                            ]}
+                        />
+                        <Select 
+                            label="Disabled Select" 
+                            disabled
+                            options={[
+                                { value: '1', label: 'Cannot change this' },
+                            ]}
                         />
                     </div>
                 </ComponentShowcase>
