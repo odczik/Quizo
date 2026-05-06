@@ -25,7 +25,6 @@ export default function Browse() {
     const [quizzes, setQuizzes] = useState<Quiz[]>(DUMMY_QUIZZES);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("newest");
-    const [filterTime, setFilterTime] = useState("all");
     
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -42,7 +41,6 @@ export default function Browse() {
             try {
                 const params = new URLSearchParams();
                 if (searchQuery) params.append("search", searchQuery);
-                if (filterTime && filterTime !== "all") params.append("time", filterTime);
                 if (sortBy) params.append("sort", sortBy);
 
                 const response = await apiClient(`/api/quizzes/browse?${params.toString()}`);
@@ -73,7 +71,7 @@ export default function Browse() {
             isMounted = false;
             clearTimeout(debounceTimer);
         };
-    }, [searchQuery, sortBy, filterTime]);
+    }, [searchQuery, sortBy]);
 
     return (
         <div className="flex flex-col items-center min-h-[80vh] px-4 py-8 max-w-7xl mx-auto w-full">
