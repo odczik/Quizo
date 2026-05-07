@@ -35,7 +35,7 @@ export async function fetchCsrfToken() {
  * A generalized fetch helper built for Laravel Sanctum authentication.
  * It automatically adds the CSRF token to mutations and sets up credentials.
  */
-export async function apiClient(endpoint: string, options: RequestInit = {}) {
+export async function apiClient(endpoint: string, options: RequestInit & { _retry?: boolean } = {}) {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
     const headers = new Headers(options.headers || {});
@@ -71,9 +71,10 @@ export async function apiClient(endpoint: string, options: RequestInit = {}) {
     // Global Error Handling (examples)
     if (!response.ok) {
         // CSRF Token Mismatch / Session Expired
-        if (response.status === 419) {
-            console.warn('CSRF token mismatch. Refreshing token...');
-            // You could optionally trigger fetchCsrfToken() and retry the request here
+        if (response.status === 419 && !options._retry) {
+            console.warn('CSRF token mismatch. Refreshing token and retrying...');
+            await fetchCsrfToken();
+            return apiClient(endpoint, { ...options, _retry: false }); // Avoid infinite retry loops
         }
         
         // Unauthenticated
