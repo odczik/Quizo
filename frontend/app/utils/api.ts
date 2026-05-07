@@ -80,7 +80,8 @@ export async function apiClient(endpoint: string, options: RequestInit & { _retr
         // Unauthenticated
         if (response.status === 401) {
             console.warn('Unauthenticated. Redirecting to login...');
-            // Handle auth redirection natively or via state
+            window.location.href = '/login'; // Adjust this to your actual login route
+            return Promise.reject(new Error('Unauthenticated'));
         }
     }
 
