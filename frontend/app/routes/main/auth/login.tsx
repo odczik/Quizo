@@ -10,12 +10,6 @@ export default function Login() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // api.fetchCsrfToken().then(() => {
-        //     console.log("CSRF token fetched successfully. Proceeding with login...");
-        // }).catch(err => {
-        //     console.error("Failed to fetch CSRF token:", err);
-        // });
-
         api.apiClient("/api/user/login", {
             method: "POST",
             headers: {

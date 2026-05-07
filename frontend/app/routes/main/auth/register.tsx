@@ -13,12 +13,6 @@ export default function Register() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        api.fetchCsrfToken().then(() => {
-            console.log("CSRF token fetched successfully. Proceeding with registration...");
-        }).catch(err => {
-            console.error("Failed to fetch CSRF token:", err);
-        });
-
         api.apiClient("/api/user/register", {
             method: "POST",
             headers: {
