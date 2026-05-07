@@ -35,7 +35,7 @@ export async function fetchCsrfToken() {
  * A generalized fetch helper built for Laravel Sanctum authentication.
  * It automatically adds the CSRF token to mutations and sets up credentials.
  */
-export async function apiClient(endpoint: string, options: RequestInit & { _retry?: boolean } = {}) {
+export async function apiClient(endpoint: string, options: RequestInit & { _retry?: boolean, _redirect?: boolean } = {}) {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
     const headers = new Headers(options.headers || {});
@@ -78,7 +78,7 @@ export async function apiClient(endpoint: string, options: RequestInit & { _retr
         }
         
         // Unauthenticated
-        if (response.status === 401) {
+        if (response.status === 401 && options._redirect) {
             console.warn('Unauthenticated. Redirecting to login...');
             window.location.href = '/login'; // Adjust this to your actual login route
             return Promise.reject(new Error('Unauthenticated'));

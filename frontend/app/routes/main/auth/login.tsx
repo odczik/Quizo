@@ -18,7 +18,8 @@ export default function Login() {
             body: JSON.stringify({
                 email: email,
                 password: password
-            })
+            }),
+            _redirect: false // Custom flag to prevent multiple redirects in case of multiple 401 responses
         }).then(res => {
             if (res.ok) {
                 console.log("Login successful!");
