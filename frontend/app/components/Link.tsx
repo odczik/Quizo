@@ -12,7 +12,7 @@ const variantStyles = {
 
 export function Link({ className = "", variant, ...props }: LinkProps) {
     const baseStyles = "font-medium focus:outline-none rounded-sm";
-    const combinedClassName = `${baseStyles} ${variant && variantStyles[variant]} ${className}`.trim();
+    const combinedClassName = `${baseStyles} ${variant ? variantStyles[variant] : ""} ${className}`.replace(/\s+/g, " ").trim();
 
     return (
         <RouterLink

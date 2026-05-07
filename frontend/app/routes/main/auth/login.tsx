@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import api from "~/utils/api";
 
 export default function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -18,8 +22,8 @@ export default function Login() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                username: "testuser",
-                password: "password123"
+                email: email,
+                password: password
             })
         }).then(res => {
             if (res.ok) {
@@ -36,14 +40,18 @@ export default function Login() {
                 <h2 className="text-2xl font-bold mb-6 text-center">Login to Quizo</h2>
                 <form className="space-y-4" onSubmit={(e) => handleSubmit(e)}>
                     <Input 
-                        type="text" 
-                        placeholder="Username" 
+                        type="email" 
+                        placeholder="Email" 
                         className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                     />
                     <Input 
                         type="password" 
                         placeholder="Password" 
                         className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
                     <Button 
                         type="submit" 
