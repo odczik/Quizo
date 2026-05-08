@@ -3,7 +3,11 @@ import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import api from "~/utils/api";
 
+import { useAuth } from "~/context/AuthenticationContext";
+
 export default function Login() {
+    const { checkAuth } = useAuth();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -22,6 +26,7 @@ export default function Login() {
             _redirect: false // Custom flag to prevent multiple redirects in case of multiple 401 responses
         }).then(res => {
             if (res.ok) {
+                checkAuth(); // Refresh the authentication status
                 console.log("Login successful!");
             }
         }).catch(err => {

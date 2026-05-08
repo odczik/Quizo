@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { AuthenticationProvider } from "~/context/AuthenticationContext";
 import { NotificationProvider } from "~/context/NotificationContext";
 
 export const links: Route.LinksFunction = () => [
@@ -34,9 +35,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <NotificationProvider>
-          {children}
-        </NotificationProvider>
+        <AuthenticationProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </AuthenticationProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

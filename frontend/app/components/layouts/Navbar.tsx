@@ -1,7 +1,17 @@
 import { Link } from "~/components/Link";
 import { Button } from "~/components/Button";
 
+import { useAuth } from "~/context/AuthenticationContext";
+import { useEffect } from "react";
+
+
 export default function Navbar() {
+    const { user, isLoading } = useAuth();
+
+    useEffect(() => {
+        console.log("Auth state changed:", { user, isLoading });
+    }, [isLoading, user]);
+
     return (
         <header className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
             <nav className="flex justify-between items-center max-w-7xl mx-auto">
