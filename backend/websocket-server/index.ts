@@ -62,6 +62,8 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						gameId = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a random 6-digit game ID
 					} while (rooms[gameId]); // Ensure it's unique
 
+					ws.roomId = gameId; // Store the room ID on the socket for cleanup later
+
 					rooms[gameId] = {
 						players: [],
 						host_ws: ws, // Store the host's WebSocket for later reference
@@ -130,15 +132,17 @@ wss.on('connection', (ws: CustomWebSocket) => {
 		// Clean up
 		if (ws.isHost && ws.roomId && rooms[ws.roomId]) {
 			// If the host leaves, end the game (if already started, else just delete the lobby)
+			if (rooms[ws.roomId].players.length > 0) {
+				rooms[ws.roomId].players.forEach(player => {
+					player.send(JSON.stringify({ type: 'game_ended', message: 'Host has left the lobby.' }));
+					player.close();
+				});
+			}
 			if(rooms[ws.roomId].state === 'in_game') {
 				rooms[ws.roomId].state = 'finished';
 			} else {
 				delete rooms[ws.roomId];
 			}
-			rooms[ws.roomId].players.forEach(player => {
-				player.send(JSON.stringify({ type: 'game_ended', message: 'Host has left the lobby.' }));
-				player.close();
-			});
 		}
 		if (ws.roomId && rooms[ws.roomId]) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
