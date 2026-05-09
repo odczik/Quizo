@@ -1,21 +1,10 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import jwt from 'jsonwebtoken';
 import db from './db';
+import type { CustomWebSocket, Room } from './types/types';
 
 const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT });
-
-interface CustomWebSocket extends WebSocket {
-    isAuthenticated?: boolean;
-    canAuthenticate?: boolean;
-    user?: any;
-    username?: string;
-    roomId?: string;
-}
-
-interface Room {
-    players: CustomWebSocket[];
-}
 
 const rooms: Record<string, Room> = {
 	"123123": {

@@ -1,7 +1,7 @@
 import { Kysely, SqliteDialect, MysqlDialect } from 'kysely';
 import Database from 'better-sqlite3';
 import path from 'path';
-import type { Database as DatabaseType } from './types';
+import type { Database as DatabaseType } from './types/db_types';
 
 // --- 1. CONFIGURATION ---
 // Set this to 'sqlite' for now. Change to 'mysql' later.
