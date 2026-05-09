@@ -44,8 +44,6 @@ export default function Browse() {
     };
 
     useEffect(() => {
-        return setIsLoading(false); // Skip real API call for now since backend isn't fully set up yet
-
         let isMounted = true;
         
         const fetchQuizzes = async () => {
@@ -57,7 +55,7 @@ export default function Browse() {
                 if (searchQuery) params.append("search", searchQuery);
                 if (sortBy) params.append("sort", sortBy);
 
-                const response = await apiClient(`/api/quizzes/browse?${params.toString()}`);
+                const response = await apiClient(`/api/discover?${params.toString()}`);
                 if (!response.ok) {
                     throw new Error("Failed to fetch quizzes");
                 }

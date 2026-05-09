@@ -104,6 +104,36 @@ class QuizController extends Controller
 
     public function discoverQuizzes(Request $request)
     {
-        // Logic to discover quizzes
+        $query = Quiz::where('is_public', true)
+            ->leftJoin('users', 'quizzes.created_by', '=', 'users.id')
+            ->select('quizzes.*', 'users.name as created_by');
+
+        // Apply search filter
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('quizzes.title', 'like', $searchTerm)
+                  ->orWhere('quizzes.description', 'like', $searchTerm);
+            });
+        }
+
+        // Apply sorting
+        switch ($request->sort) {
+            case 'oldest':
+                $query->orderBy('quizzes.created_at', 'asc');
+                break;
+            case 'az':
+                $query->orderBy('quizzes.title', 'asc');
+                break;
+            case 'za':
+                $query->orderBy('quizzes.title', 'desc');
+                break;
+            case 'newest':
+            default:
+                $query->orderBy('quizzes.created_at', 'desc');
+                break;
+        }
+
+        return response()->json($query->get());
     }
 }
