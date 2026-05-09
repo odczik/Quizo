@@ -30,10 +30,13 @@ export default function Register() {
                 password: password,
                 password_confirmation: passwordConfirmation
             })
-        }).then(res => {
+        }).then(async res => {
             if (res.ok) {
                 notify("Registration successful! You can now login.", "success");
                 navigate("/login");
+            } else {
+                const data = await res.json();
+                throw new Error(data.message || "Something went wrong during registration.");
             }
         }).catch(err => {
             console.error("Registration failed:", err);

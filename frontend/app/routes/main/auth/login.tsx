@@ -5,9 +5,11 @@ import { Input } from "~/components/Input";
 import api from "~/utils/api";
 
 import { useAuth } from "~/context/AuthenticationContext";
+import { useNotification } from "~/context/NotificationContext";
 
 export default function Login() {
     const { checkAuth } = useAuth();
+    const { notify } = useNotification();
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
@@ -26,14 +28,18 @@ export default function Login() {
                 password: password
             }),
             _redirect: false // Custom flag to prevent multiple redirects in case of multiple 401 responses
-        }).then(res => {
+        }).then(async res => {
             if (res.ok) {
-                checkAuth(); // Refresh the authentication status
-                console.log("Login successful!");
+                await checkAuth(); // Refresh auth state after successful login
+                notify("Login successful!", "success");
                 navigate("/");
+            } else {
+                const data = await res.json();
+                throw new Error(data.message || "Something went wrong during login.");
             }
         }).catch(err => {
             console.error("Login failed:", err);
+            notify("Login failed. Please try again. Error: " + err.message, "error");
         });
     };
 
