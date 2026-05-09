@@ -1,11 +1,13 @@
-import { Outlet, Navigate } from "react-router";
+import { Outlet } from "react-router";
 import Navbar from "~/components/layouts/Navbar";
 import { Spinner } from "~/components/Spinner";
 
 import { useAuth } from "~/context/AuthenticationContext";
+import { useNavigate } from "react-router";
 
-export default function ProtectedLayout() {
+export default function NoAuthLayout() {
     const { user, isLoading } = useAuth();
+    const navigate = useNavigate();
 
     if (isLoading) {
         return (
@@ -15,8 +17,9 @@ export default function ProtectedLayout() {
         );
     }
 
-    if (!user) {
-        return <Navigate to="/login" replace />;
+    if (user) {
+        navigate(-1); // Go back to the previous page if user is already authenticated
+        return null;
     }
 
     return <Outlet />;

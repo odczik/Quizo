@@ -9,8 +9,10 @@ export default [
         route("browse", "routes/main/browse.tsx"),
 
         // Auth routes
-        route("login", "routes/main/auth/login.tsx"),
-        route("register", "routes/main/auth/register.tsx"),
+        layout("routes/layouts/no-auth-layout.tsx", [
+            route("login", "routes/main/auth/login.tsx"),
+            route("register", "routes/main/auth/register.tsx"),
+        ]),
 
         // Protected routes (require authentication)
         layout("routes/layouts/protected-layout.tsx", [
