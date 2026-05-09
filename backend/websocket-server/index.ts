@@ -1,17 +1,29 @@
-const { WebSocketServer } = require('ws');
-const jwt = require('jsonwebtoken');
-const db = require('./db');
+import { WebSocketServer, WebSocket } from 'ws';
+import jwt from 'jsonwebtoken';
+import db from './db';
 
 const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT });
 
-const rooms = {
+interface CustomWebSocket extends WebSocket {
+    isAuthenticated?: boolean;
+    canAuthenticate?: boolean;
+    user?: any;
+    username?: string;
+    roomId?: string;
+}
+
+interface Room {
+    players: CustomWebSocket[];
+}
+
+const rooms: Record<string, Room> = {
 	"123123": {
 		players: []
 	}
 }; // In-memory storage for game rooms and their players
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws: CustomWebSocket) => {
     ws.isAuthenticated = false; // Mark as unauthenticated initially
 	ws.canAuthenticate = true; // Allow them to authenticate for a short window
 
@@ -23,7 +35,7 @@ wss.on('connection', (ws) => {
         }
     }, 3000);
 
-    ws.on('message', (message) => {
+    ws.on('message', (message: string) => {
         try {
             const data = JSON.parse(message);
 			console.log('> ', data);

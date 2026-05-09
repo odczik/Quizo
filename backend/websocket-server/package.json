@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts"
   },
   "author": "",
   "license": "MIT",
@@ -13,5 +14,13 @@
     "jsonwebtoken": "^9.0.3",
     "kysely": "^0.28.17",
     "ws": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   }
 }
