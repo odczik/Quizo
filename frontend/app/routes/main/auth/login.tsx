@@ -28,6 +28,7 @@ export default function Login() {
             if (res.ok) {
                 checkAuth(); // Refresh the authentication status
                 console.log("Login successful!");
+                window.location.href = "/";
             }
         }).catch(err => {
             console.error("Login failed:", err);
