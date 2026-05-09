@@ -17,12 +17,13 @@ export default [
 
         // Protected routes (require authentication)
         layout("routes/layouts/protected-layout.tsx", [
-            route("profile", "routes/main/profile.tsx")
-        ])
+            route("profile", "routes/main/profile.tsx"),
+        ]),
     ]),
     
     // 2. The Game itself: uses game-layout (no Navbar/Footer, full screen)
     layout("routes/layouts/game-layout.tsx", [
-        route("game/:id?", "routes/game/lobby.tsx")
+        route("game/:id?", "routes/game/lobby.tsx", { type: "player-lobby" }),
+        route("game/host/:id?", "routes/game/lobby.tsx", { type: "host-lobby" }),
     ])
 ] satisfies RouteConfig;

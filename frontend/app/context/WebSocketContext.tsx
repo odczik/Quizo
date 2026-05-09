@@ -26,17 +26,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         ws.onopen = () => {
             console.log('Connected to Game Server');
             setIsConnected(true);
-            
-            if(params.id) {
-                // If we have a game ID, we can send it immediately to find that game room
-                ws.send(JSON.stringify({ type: 'find_game', gameId: params.id }));
-            } else {
-                const token = localStorage.getItem('auth_token');
-                // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWQiOiJ0ZXN0aWQiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ.-HsQAb6O7Jko6P3B25IxIOS8k2Y5_Fm1fKhXhkpfSX8"
-                if (token) {
-                    ws.send(JSON.stringify({ type: 'authenticate', token }));
-                }
-            }
         };
 
         ws.onmessage = (event) => {
@@ -47,7 +36,6 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         ws.onclose = (e) => {
             console.log('Connection closed', e);
             setIsConnected(false);
-            // Ideally, implement a reconnection timeout here
         };
 
         socketRef.current = ws;

@@ -1,6 +1,7 @@
 export interface CustomWebSocket extends WebSocket {
     isAuthenticated?: boolean;
     canAuthenticate?: boolean;
+    isHost?: boolean;
     user?: any;
     username?: string;
     roomId?: string;

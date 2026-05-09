@@ -48,6 +48,30 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						ws.close(1008, 'Invalid Token'); 
 					}
 					break;
+				case 'create_game':
+					// if (!ws.isAuthenticated) {
+					// 	ws.close(1008, 'Authentication required');
+					// 	return;
+					// }
+
+					ws.isHost = true; // Mark this socket as a host for later reference
+
+					const quizId = data.quizId;
+					let gameId;
+					do {
+						gameId = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a random 6-digit game ID
+					} while (rooms[gameId]); // Ensure it's unique
+
+					rooms[gameId] = {
+						players: [],
+						host_ws: ws, // Store the host's WebSocket for later reference
+						state: 'lobby',
+						questions: [],
+						questionIndex: 0
+					};
+					// TODO: Populate questions from db
+					ws.send(JSON.stringify({ type: 'game_created', gameId: gameId }));
+					break;
 				case 'find_game':
 					if(rooms[data.gameId]) {
 						ws.send(JSON.stringify({ type: 'game_found', gameId: data.gameId }));
@@ -78,13 +102,12 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						}));
 						
 						// Notify other players in the room that a new player has joined
+						rooms[data.gameId].host_ws?.send(JSON.stringify({ type: 'player_joined', username: data.username }));
 						rooms[data.gameId].players.forEach(player => {
 							if(player !== ws) {
 								player.send(JSON.stringify({ type: 'player_joined', username: data.username }));
 							}
 						});
-
-						console.log(rooms)
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
 						return;
@@ -105,8 +128,21 @@ wss.on('connection', (ws: CustomWebSocket) => {
 	ws.on('close', () => {
 		console.log('Client disconnected');
 		// Clean up
+		if (ws.isHost && ws.roomId && rooms[ws.roomId]) {
+			// If the host leaves, end the game (if already started, else just delete the lobby)
+			if(rooms[ws.roomId].state === 'in_game') {
+				rooms[ws.roomId].state = 'finished';
+			} else {
+				delete rooms[ws.roomId];
+			}
+			rooms[ws.roomId].players.forEach(player => {
+				player.send(JSON.stringify({ type: 'game_ended', message: 'Host has left the lobby.' }));
+				player.close();
+			});
+		}
 		if (ws.roomId && rooms[ws.roomId]) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
+			rooms[ws.roomId].host_ws?.send(JSON.stringify({ type: 'player_left', username: ws.username }));
 			rooms[ws.roomId].players.forEach(player => {
 				player.send(JSON.stringify({ type: 'player_left', username: ws.username }));
 			});

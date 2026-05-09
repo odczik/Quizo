@@ -191,7 +191,7 @@ export default function Browse() {
                                 <div className="flex items-center gap-1 font-medium">
                                     ⏱️ {quiz.default_time_limit}s
                                 </div>
-                                <Link to={`/browse/${quiz.id}`} className="font-bold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full hover:bg-blue-100 transition-colors">
+                                <Link to={`/game/host/${quiz.id}`} className="font-bold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full hover:bg-blue-100 transition-colors">
                                     Play Now →
                                 </Link>
                             </div>
