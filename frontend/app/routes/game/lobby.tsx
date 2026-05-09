@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMatches } from "react-router";
+import { QRCode } from "react-qr-code";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { PlayerBadge } from "~/components/PlayerBadge";
@@ -114,7 +115,17 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                 // Waiting for host to start the game - this is where you could show a list of players who have joined, etc.
                 <div className="text-center space-y-4">
                     {isHost ? (
-                        <h1 className="text-6xl font-bold mb-8">Game Pin: <code className="bg-gray-200 text-gray-800 p-2 rounded">{pin}</code></h1>
+                        <>
+                        <QRCode 
+                            value={`${window.location.origin}/game/${pin}`} 
+                            size={256} 
+                            className="mx-auto mb-8 border-4 border-white rounded-lg p-2" 
+                            title="Scan to Join Game"
+                            bgColor="#00000000"
+                            fgColor="#ffffff"
+                        />
+                        <h1 className="text-6xl font-bold mb-8">Game Pin: <code className="bg-gray-200 text-indigo-800 p-2 rounded">{pin}</code></h1>
+                        </>
                     ) : (
                         <h1 className="text-6xl font-bold mb-8">Waiting for Host to Start the Game...</h1>
                     )}
