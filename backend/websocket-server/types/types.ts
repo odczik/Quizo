@@ -1,10 +1,10 @@
 export interface CustomWebSocket extends WebSocket {
     isAuthenticated?: boolean;
     canAuthenticate?: boolean;
-    user_id?: number;
     user?: any;
     username?: string;
     roomId?: string;
+    points?: number;
 }
 
 export interface Question {
@@ -26,7 +26,7 @@ export interface Answer {
 
 export interface Room {
     players: CustomWebSocket[];
-    host_id?: number;
+    host_ws?: CustomWebSocket;
 	state: 'lobby' | 'in_game' | 'finished';
 	questions: Question[];
     questionIndex: number;
