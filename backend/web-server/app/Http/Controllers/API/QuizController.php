@@ -108,6 +108,17 @@ class QuizController extends Controller
             ->leftJoin('users', 'quizzes.created_by', '=', 'users.id')
             ->select('quizzes.*', 'users.name as created_by');
 
+        // Apply liked filter
+        if ($request->has('liked_only') && $request->liked_only == '1') {
+            if (Auth::check()) {
+                $query->join('quiz_likes', 'quizzes.id', '=', 'quiz_likes.quiz_id')
+                      ->where('quiz_likes.user_id', Auth::id());
+            } else {
+                // If they are not authenticated, they can't have any liked quizzes
+                return response()->json([]);
+            }
+        }
+
         // Apply search filter
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = '%' . $request->search . '%';
