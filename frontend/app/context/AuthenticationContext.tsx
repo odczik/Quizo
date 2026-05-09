@@ -11,6 +11,7 @@ interface AuthContextType {
     user: User | null;
     isLoading: boolean;
     checkAuth: () => Promise<void>;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,8 +42,19 @@ export function AuthenticationProvider({ children }: { children: React.ReactNode
         checkAuth();
     }, []);
 
+    const logout = async () => {
+        // Optimistically set user to null so the UI updates instantly
+        setUser(null);
+        try {
+            await api.apiClient('/api/user/logout', { method: 'POST' });
+        } catch (error) {
+            console.error("Logout failed:", error);
+            checkAuth(); // Re-check auth status in case logout failed
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, checkAuth }}>
+        <AuthContext.Provider value={{ user, isLoading, checkAuth, logout }}>
             {children}
         </AuthContext.Provider>
     );

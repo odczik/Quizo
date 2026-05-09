@@ -7,17 +7,12 @@ import { useNavigate } from "react-router";
 import api from "~/utils/api";
 
 export default function Navbar() {
-    const { user, isLoading, checkAuth } = useAuth();
+    const { user, isLoading, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        try {
-            await api.apiClient('/api/user/logout', { method: 'POST' });
-            await checkAuth();
-            navigate('/');
-        } catch (error) {
-            console.error("Logout failed", error);
-        }
+        await logout();
+        navigate('/');
     };
 
     useEffect(() => {
@@ -51,6 +46,7 @@ export default function Navbar() {
                                             Create new quiz
                                         </Link>
                                     </li>
+                                    <div className="border-t border-gray-200 my-2"></div>
                                     <li>
                                         <button 
                                             onClick={handleLogout} 
