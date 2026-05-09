@@ -129,7 +129,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     ) : (
                         <h1 className="text-6xl font-bold mb-8">Waiting for Host to Start the Game...</h1>
                     )}
-                    <div className="bg-indigo-500 p-8 rounded border-4 border-dashed border-gray-300 min-h-[200px]">
+                    <div className="bg-indigo-500 p-8 rounded border-4 border-dashed border-gray-300 min-h-[200px] max-w-[90%] mx-auto">
                         <div className="flex flex-wrap gap-4 justify-center">
                             {players.length > 0 ? (
                                 players.map((player) => (
