@@ -36,6 +36,11 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         ws.onclose = (e) => {
             console.log('Connection closed', e);
             setIsConnected(false);
+
+            // Try to reconnect after a short delay (only runs once)
+            setTimeout(() => {
+                socketRef.current = null; // Clear old socket ref before reconnecting
+            }, 1000);
         };
 
         socketRef.current = ws;
@@ -44,7 +49,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         return () => {
             ws.close();
         };
-    }, []); // Empty dependency array = only runs once on mount!
+    }, [socketRef.current]);
 
     // Helper function to send messages easily from anywhere
     const sendMessage = (type: string, payload: any = {}) => {
