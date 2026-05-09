@@ -85,6 +85,10 @@ wss.on('connection', (ws: CustomWebSocket) => {
 				case 'join_game':
 					if(rooms[data.gameId]) {
 						// Store username and room info on the socket for easy access later
+						if(data.username.length > 20) {
+							ws.terminate(1008, 'Username too long');
+							return;
+						}
 						ws.username = data.username;
 						ws.roomId = data.gameId;
 

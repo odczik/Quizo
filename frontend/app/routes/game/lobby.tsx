@@ -158,6 +158,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                             placeholder="Mike Oxlong" 
                             error={error}
                             className="mb-4 !text-gray-100" 
+                            maxLength={20}
                         />
                         <Button onClick={() => joinGame()}>Join Game</Button>
                         </>
