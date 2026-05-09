@@ -1,14 +1,20 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { Link } from "~/components/Link";
 import api from "~/utils/api";
 
+import { useNotification } from "~/context/NotificationContext";
+
 export default function Register() {
+    const { notify } = useNotification();
+
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
+    const navigate = useNavigate();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,10 +32,12 @@ export default function Register() {
             })
         }).then(res => {
             if (res.ok) {
-                console.log("Registration successful!");
+                notify("Registration successful! You can now login.", "success");
+                navigate("/login");
             }
         }).catch(err => {
             console.error("Registration failed:", err);
+            notify("Registration failed. Please try again. Error: " + err.message, "error");
         });
     };
 

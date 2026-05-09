@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import api from "~/utils/api";
@@ -7,6 +8,7 @@ import { useAuth } from "~/context/AuthenticationContext";
 
 export default function Login() {
     const { checkAuth } = useAuth();
+    const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -28,7 +30,7 @@ export default function Login() {
             if (res.ok) {
                 checkAuth(); // Refresh the authentication status
                 console.log("Login successful!");
-                window.location.href = "/";
+                navigate("/");
             }
         }).catch(err => {
             console.error("Login failed:", err);

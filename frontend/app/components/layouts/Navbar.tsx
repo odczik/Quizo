@@ -3,17 +3,18 @@ import { Button } from "~/components/Button";
 
 import { useAuth } from "~/context/AuthenticationContext";
 import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import api from "~/utils/api";
-
 
 export default function Navbar() {
     const { user, isLoading, checkAuth } = useAuth();
+    const navigate = useNavigate();
 
     const handleLogout = async () => {
         try {
             await api.apiClient('/api/user/logout', { method: 'POST' });
             await checkAuth();
-            window.location.href = '/';
+            navigate('/');
         } catch (error) {
             console.error("Logout failed", error);
         }
@@ -62,7 +63,7 @@ export default function Navbar() {
                             </div>
                         </li>
                     )}
-                    <li><Button variant="primary" onClick={() => location.href = "/game"}>Join Game</Button></li>
+                    <li><Button variant="primary" onClick={() => navigate("/game")}>Join Game</Button></li>
                 </ul>
             </nav>
         </header>
