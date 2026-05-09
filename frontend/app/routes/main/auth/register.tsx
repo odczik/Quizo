@@ -9,15 +9,17 @@ import { useNotification } from "~/context/NotificationContext";
 
 export default function Register() {
     const { notify } = useNotification();
+    const navigate = useNavigate();
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
-    const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
 
         api.apiClient("/api/user/register", {
             method: "POST",
@@ -41,6 +43,8 @@ export default function Register() {
         }).catch(err => {
             console.error("Registration failed:", err);
             notify("Registration failed. Please try again. Error: " + err.message, "error");
+        }).finally(() => {
+            setIsSubmitting(false);
         });
     };
 
@@ -81,7 +85,10 @@ export default function Register() {
                         type="submit" 
                         variant="primary" 
                         className="w-full"
-                    >Register</Button>
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Registering..." : "Register"}
+                    </Button>
                 </form>
                 <p className="mt-4 text-center text-gray-600">Already have an account? <Link to="/login" className="text-blue-500 hover:underline">Login here</Link></p>
             </div>

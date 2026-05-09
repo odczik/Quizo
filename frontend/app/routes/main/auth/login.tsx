@@ -14,9 +14,11 @@ export default function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
 
         api.apiClient("/api/user/login", {
             method: "POST",
@@ -40,6 +42,8 @@ export default function Login() {
         }).catch(err => {
             console.error("Login failed:", err);
             notify("Login failed. Please try again. Error: " + err.message, "error");
+        }).finally(() => {
+            setIsSubmitting(false);
         });
     };
 
@@ -66,7 +70,10 @@ export default function Login() {
                         type="submit" 
                         variant="primary" 
                         className="w-full"
-                    >Login</Button>
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Logging in..." : "Login"}
+                    </Button>
                 </form>
                 <p className="mt-4 text-center text-gray-600">Don't have an account? <a href="/register" className="text-blue-500 hover:underline">Register here</a></p>
             </div>
