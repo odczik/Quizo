@@ -39,7 +39,10 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
             // Try to reconnect after a short delay (only runs once)
             setTimeout(() => {
-                socketRef.current = null; // Clear old socket ref before reconnecting
+                if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED) {
+                    console.log('Attempting to reconnect to Game Server...');
+                    socketRef.current = new WebSocket('ws://localhost:8080');
+                }
             }, 1000);
         };
 
@@ -49,12 +52,12 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         return () => {
             ws.close();
         };
-    }, [socketRef.current]);
+    }, []); // Removing socketRef.current from dependencies because it causes infinite reconnect loops!
 
     // Helper function to send messages easily from anywhere
     const sendMessage = (type: string, payload: any = {}) => {
         if (socketRef.current?.readyState === WebSocket.OPEN) {
-            socketRef.current.send(JSON.stringify({ type, ...payload }));
+            socketRef.current.send(JSON.stringify({ ...payload, type }));
         }
     };
 
