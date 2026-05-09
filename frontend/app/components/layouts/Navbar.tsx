@@ -33,7 +33,7 @@ export default function Navbar() {
                     <li><Link to="/browse" className="hover:underline">Browse Quizzes</Link></li>
 
                     {user == null ? (
-                        <li><Button variant="secondary" onClick={() => location.href = "/login"}>Login</Button></li>
+                        <li><Button variant="secondary" onClick={() => navigate("/login")}>Login</Button></li>
                     ) : (
                         <li className="relative group">
                             <Button variant="secondary" className="cursor-default">
