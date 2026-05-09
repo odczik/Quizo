@@ -1,13 +1,19 @@
 import { Outlet } from "react-router";
-import Navbar from "~/components/layouts/Navbar";
 import { Spinner } from "~/components/Spinner";
 
 import { useAuth } from "~/context/AuthenticationContext";
 import { useNavigate } from "react-router";
+import { useEffect } from "react";
 
 export default function NoAuthLayout() {
     const { user, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isLoading && user) {
+            navigate(-1); // Go back to the previous page if user is already authenticated
+        }
+    }, [isLoading, user, navigate]);
 
     if (isLoading) {
         return (
@@ -18,7 +24,6 @@ export default function NoAuthLayout() {
     }
 
     if (user) {
-        navigate(-1); // Go back to the previous page if user is already authenticated
         return null;
     }
 
