@@ -128,6 +128,24 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						return;
 					}
 					break;
+				case 'kick_player':
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can kick players' }));
+						return;
+					}
+					const playerToKick = rooms[ws.roomId].players.find(p => p.username === data.username);
+					if (playerToKick) {
+						playerToKick.send(JSON.stringify({ type: 'kicked', message: 'You have been kicked from the game.' }));
+						rooms[ws.roomId].players = rooms[ws.roomId].players.filter(p => p !== playerToKick);
+						rooms[ws.roomId].host_ws?.send(JSON.stringify({ type: 'player_left', username: data.username }));
+						rooms[ws.roomId].players.forEach(player => {
+							player.send(JSON.stringify({ type: 'player_left', username: data.username }));
+						});
+					} else {
+						ws.send(JSON.stringify({ type: 'error', message: 'Player not found in the game' }));
+						return;
+					}
+					break;
 				case 'start_game':
 					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
 						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can start the game' }));
@@ -163,7 +181,6 @@ wss.on('connection', (ws: CustomWebSocket) => {
 			if (rooms[ws.roomId].players.length > 0) {
 				rooms[ws.roomId].players.forEach(player => {
 					player.send(JSON.stringify({ type: 'game_ended', message: 'Host has left the lobby.' }));
-					player.close();
 				});
 			}
 			if(rooms[ws.roomId].state === 'in_game') {

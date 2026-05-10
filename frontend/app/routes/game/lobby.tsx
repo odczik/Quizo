@@ -87,6 +87,19 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     console.log('Player left:', lastMessage.username);
                     setPlayers(prev => prev.filter(name => name !== lastMessage.username));
                     break;
+                case 'kicked':
+                    notify('You have been kicked from the game.', 'error');
+                    setJoined(false);
+                    setGameFound(false);
+                    setPlayers([]);
+                    break;
+                case 'game_ended':
+                    notify(lastMessage.message || 'Game has ended.', 'info');
+                    setJoined(false);
+                    setGameFound(false);
+                    setPin("");
+                    setPlayers([]);
+                    break;
                 case 'error':
                     console.error('Error from server:', lastMessage.message);
                     setError(lastMessage.message);
@@ -134,7 +147,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                             {players.length > 0 ? (
                                 players.map((player) => (
                                     isHost ? (
-                                        <PlayerBadge key={player} name={player} onKick={() => alert('Kicked!')} />
+                                        <PlayerBadge key={player} name={player} onKick={() => sendMessage("kick_player", { gameId: pin, username: player })} />
                                     ) : (
                                         <PlayerBadge key={player} name={player} /> // Regular player view without kick option
                                     )
