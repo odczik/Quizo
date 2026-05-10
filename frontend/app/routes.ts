@@ -23,7 +23,7 @@ export default [
     
     // 2. The Game itself: uses game-layout (no Navbar/Footer, full screen)
     layout("routes/layouts/game-layout.tsx", [
-        route("game/:id?", "routes/game/lobby.tsx", { id: "player-lobby" }),
-        route("game/host/:id?", "routes/game/lobby.tsx", { id: "host-lobby" }),
+        route("game/:id?", "routes/game/game-container.tsx", { id: "player-lobby" }),
+        route("game/host/:id?", "routes/game/game-container.tsx", { id: "host-lobby" }),
     ])
 ] satisfies RouteConfig;
