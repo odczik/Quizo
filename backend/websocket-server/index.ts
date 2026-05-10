@@ -89,6 +89,15 @@ wss.on('connection', (ws: CustomWebSocket) => {
 							ws.terminate(1008, 'Username too long');
 							return;
 						}
+						if(!/^[a-zA-Z0-9_]+$/.test(data.username)) {
+							ws.terminate(1008, 'Username contains invalid characters');
+							return;
+						}
+						if(rooms[data.gameId].state !== 'lobby') {
+							ws.send(JSON.stringify({ type: 'error', message: 'Game has already started' }));
+							return;
+						}
+
 						ws.username = data.username;
 						ws.roomId = data.gameId;
 
@@ -118,6 +127,21 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
 						return;
 					}
+					break;
+				case 'start_game':
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can start the game' }));
+						return;
+					}
+					if(rooms[ws.roomId].players.length === 0) {
+						ws.send(JSON.stringify({ type: 'error', message: 'At least one player is required to start the game' }));
+						return;
+					}
+					rooms[ws.roomId].state = 'in-game';
+					ws.send(JSON.stringify({ type: 'game_start' }));
+					rooms[ws.roomId].players.forEach(player => {
+						player.send(JSON.stringify({ type: 'game_start' }));
+					});
 					break;
 				case 'submit_answer':
 					console.log(`User ${ws.user?.id} answered:`, data.answer);

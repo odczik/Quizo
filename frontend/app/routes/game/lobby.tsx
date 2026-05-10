@@ -8,11 +8,13 @@ import { Spinner } from "~/components/Spinner";
 
 import { useGameSocket } from "~/context/WebSocketContext";
 import { useAuth } from "~/context/AuthenticationContext";
+import { useNotification } from "~/context/NotificationContext";
 
 export default function Lobby({ params }: { params: { id?: string } }) {
     const matches = useMatches();
     const { sendMessage, lastMessage, isConnected } = useGameSocket();
     const { user } = useAuth();
+    const { notify } = useNotification();
 
     const [error, setError] = useState<string | undefined>(undefined);
     const [gameFound, setGameFound] = useState(false);
@@ -68,9 +70,6 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     setIsLoading(false);
                     setJoined(true); // Host is automatically joined to their own game
                     break;
-                case 'game_update':
-                    console.log('Game Update:', lastMessage);
-                    break;
                 case 'game_found':
                     console.log('Game found:', lastMessage.gameId);
                     setGameFound(true);
@@ -91,6 +90,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                 case 'error':
                     console.error('Error from server:', lastMessage.message);
                     setError(lastMessage.message);
+                    notify(lastMessage.message, "error");
                     break;
                 default:
                     console.log('Unhandled message type:', lastMessage);
@@ -144,6 +144,11 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                             )}
                         </div>
                     </div>
+                    {isHost && (
+                        <Button variant="secondary" onClick={() => sendMessage("start_game", { gameId: pin })}>
+                            Start Game
+                        </Button>
+                    )}
                 </div>
             ) : (
                 // Initial lobby view where player enters game pin and name
