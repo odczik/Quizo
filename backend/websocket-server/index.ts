@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import jwt from 'jsonwebtoken';
 import db from './db';
+import { sendToPlayers, executeForEachPlayer } from './util/util';
 
 import type { CustomWebSocket, Room } from './types/types';
 
@@ -62,14 +63,14 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					ws.roomId = gameId; // Store the room ID on the socket for cleanup later
 
 					rooms[gameId] = {
-						players: [ws], // Add the host as the first player in the room
+						players: [], // Add the host as the first player in the room
 						host_ws: ws, // Store the host's WebSocket for later reference
 						quizId: quizId,
 						state: 'lobby',
 						questions: [],
 						questionIndex: 0
 					};
-					// TODO: Populate questions from db
+
 					ws.send(JSON.stringify({ type: 'game_created', gameId: gameId }));
 					break;
 				case 'find_game':
@@ -119,11 +120,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						}));
 						
 						// Notify other players in the room that a new player has joined
-						rooms[data.gameId].players.forEach(player => {
-							if(player !== ws) {
-								player.send(JSON.stringify({ type: 'player_joined', username: data.username }));
-							}
-						});
+						sendToPlayers(rooms[data.gameId], { type: 'player_joined', username: data.username }, { exclude: ws });
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
 						return;
@@ -138,9 +135,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					if (playerToKick) {
 						playerToKick.send(JSON.stringify({ type: 'kicked', message: 'You have been kicked from the game.' }));
 						rooms[ws.roomId].players = rooms[ws.roomId].players.filter(p => p !== playerToKick);
-						rooms[ws.roomId].players.forEach(player => {
-							player.send(JSON.stringify({ type: 'player_left', username: data.username }));
-						});
+						sendToPlayers(rooms[ws.roomId], { type: 'player_left', username: data.username });
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Player not found in the game' }));
 						return;
@@ -156,9 +151,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						return;
 					}
 					rooms[ws.roomId].state = 'in-game';
-					rooms[ws.roomId].players.forEach(player => {
-						player.send(JSON.stringify({ type: 'game_start' }));
-					});
+					sendToPlayers(rooms[ws.roomId], { type: 'game_start' });
 					handleGameLogic(rooms[ws.roomId]); // Start the game logic
 					break;
 				case 'submit_answer':
@@ -180,9 +173,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 		if (ws.isHost && ws.roomId && rooms[ws.roomId]) {
 			// If the host leaves, end the game (if already started, else just delete the lobby)
 			if (rooms[ws.roomId].players.length > 0) {
-				rooms[ws.roomId].players.forEach(player => {
-					player.send(JSON.stringify({ type: 'game_ended', message: 'Host has left the lobby.' }));
-				});
+				sendToPlayers(rooms[ws.roomId], { type: 'game_ended', message: 'Host has left the game. The game has ended.' }, { excludeHost: true });
 			}
 			if(rooms[ws.roomId].state === 'in-game') {
 				rooms[ws.roomId].state = 'finished';
@@ -192,9 +183,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 		}
 		if (ws.roomId && rooms[ws.roomId]) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
-			rooms[ws.roomId].players.forEach(player => {
-				player.send(JSON.stringify({ type: 'player_left', username: ws.username }));
-			});
+			sendToPlayers(rooms[ws.roomId], { type: 'player_left', username: ws.username });
 		}
 	});
 });
@@ -248,7 +237,7 @@ const sendNextQuestion = (room: Room) => {
 	const question = room.questions[room.questionIndex];
 	console.log(`Sending question ${room.questionIndex + 1}: ${question.question_text}`);
 	room.questionIndex++;
-	room.players.forEach(player => {
+	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ type: 'next_question' }));
 
 		const strippedQuestion: any = {
@@ -271,5 +260,5 @@ const sendNextQuestion = (room: Room) => {
 				answers: strippedAnswers
 			}));
 		}, 6000);
-	})
+	});
 }
