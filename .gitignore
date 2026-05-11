@@ -1,1 +1,2 @@
 .DS_Store
+/backend/websocket-server/node_modules
