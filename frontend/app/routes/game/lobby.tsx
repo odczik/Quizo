@@ -165,7 +165,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                 </div>
             ) : (
                 // Initial lobby view where player enters game pin and name
-                <div className="text-center space-y-4">
+                <form className="text-center space-y-4" onSubmit={(e) => { e.preventDefault(); }}>
                     {gameFound ? (
                         // If game is found, ask for player name
                         <>
@@ -201,7 +201,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                         </Button>
                         </>
                     )}
-                </div>
+                </form>
             )
         ) : (
             <div className="flex h-64 items-center justify-center">
