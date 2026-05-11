@@ -1,3 +1,5 @@
+import { WebSocket } from 'ws';
+
 export interface CustomWebSocket extends WebSocket {
     isAuthenticated?: boolean;
     canAuthenticate?: boolean;

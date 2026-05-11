@@ -8,7 +8,10 @@ const wss = new WebSocketServer({ port: PORT });
 
 const rooms: Record<string, Room> = {
 	"123123": {
-		players: []
+		players: [],
+		state: 'lobby',
+		questions: [],
+		questionIndex: 0
 	}
 }; // In-memory storage for game rooms and their players
 
@@ -86,11 +89,11 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					if(rooms[data.gameId]) {
 						// Store username and room info on the socket for easy access later
 						if(data.username.length > 20) {
-							ws.terminate(1008, 'Username too long');
+							ws.close(1008, 'Username too long');
 							return;
 						}
 						if(!/^[a-zA-Z0-9_]+$/.test(data.username)) {
-							ws.terminate(1008, 'Username contains invalid characters');
+							ws.close(1008, 'Username contains invalid characters');
 							return;
 						}
 						if(rooms[data.gameId].state !== 'lobby') {
@@ -183,7 +186,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					player.send(JSON.stringify({ type: 'game_ended', message: 'Host has left the lobby.' }));
 				});
 			}
-			if(rooms[ws.roomId].state === 'in_game') {
+			if(rooms[ws.roomId].state === 'in-game') {
 				rooms[ws.roomId].state = 'finished';
 			} else {
 				delete rooms[ws.roomId];
