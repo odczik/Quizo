@@ -8,7 +8,7 @@ export interface PlayerBadgeProps {
 export function PlayerBadge({ name, onKick }: PlayerBadgeProps) {
     // Generate a fun background color deterministically based on the player's name
     // This prevents hydration mismatches between SSR and Client rendering!
-    const funColors = ['bg-pink-500', 'bg-purple-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500'];
+    const funColors = ['bg-pink-500', 'bg-purple-500', 'bg-teal-500', 'bg-orange-500', 'bg-green-500', 'bg-blue-500', 'bg-yellow-500'];
     
     const hash = name.split('').reduce((acc, char) => {
         return char.charCodeAt(0) + ((acc << 5) - acc);
