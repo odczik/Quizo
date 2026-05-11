@@ -30,6 +30,7 @@ export interface Answer {
 export interface Room {
     players: CustomWebSocket[];
     host_ws?: CustomWebSocket;
+    quizId: number;
 	state: 'lobby' | 'in-game' | 'finished';
 	questions: Question[];
     questionIndex: number;

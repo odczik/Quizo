@@ -1,19 +1,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import jwt from 'jsonwebtoken';
 import db from './db';
+
 import type { CustomWebSocket, Room } from './types/types';
 
 const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT });
 
-const rooms: Record<string, Room> = {
-	"123123": {
-		players: [],
-		state: 'lobby',
-		questions: [],
-		questionIndex: 0
-	}
-}; // In-memory storage for game rooms and their players
+const rooms: Record<string, Room> = {}; // In-memory storage for game rooms and their players
 
 wss.on('connection', (ws: CustomWebSocket) => {
     ws.isAuthenticated = false; // Mark as unauthenticated initially
@@ -68,8 +62,9 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					ws.roomId = gameId; // Store the room ID on the socket for cleanup later
 
 					rooms[gameId] = {
-						players: [],
+						players: [ws], // Add the host as the first player in the room
 						host_ws: ws, // Store the host's WebSocket for later reference
+						quizId: quizId,
 						state: 'lobby',
 						questions: [],
 						questionIndex: 0
@@ -79,6 +74,10 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					break;
 				case 'find_game':
 					if(rooms[data.gameId]) {
+						if(rooms[data.gameId].state !== 'lobby') {
+							ws.send(JSON.stringify({ type: 'error', message: 'Game has already started' }));
+							return;
+						}
 						ws.send(JSON.stringify({ type: 'game_found', gameId: data.gameId }));
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Game not found' }));
@@ -120,7 +119,6 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						}));
 						
 						// Notify other players in the room that a new player has joined
-						rooms[data.gameId].host_ws?.send(JSON.stringify({ type: 'player_joined', username: data.username }));
 						rooms[data.gameId].players.forEach(player => {
 							if(player !== ws) {
 								player.send(JSON.stringify({ type: 'player_joined', username: data.username }));
@@ -140,7 +138,6 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					if (playerToKick) {
 						playerToKick.send(JSON.stringify({ type: 'kicked', message: 'You have been kicked from the game.' }));
 						rooms[ws.roomId].players = rooms[ws.roomId].players.filter(p => p !== playerToKick);
-						rooms[ws.roomId].host_ws?.send(JSON.stringify({ type: 'player_left', username: data.username }));
 						rooms[ws.roomId].players.forEach(player => {
 							player.send(JSON.stringify({ type: 'player_left', username: data.username }));
 						});
@@ -159,10 +156,10 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						return;
 					}
 					rooms[ws.roomId].state = 'in-game';
-					ws.send(JSON.stringify({ type: 'game_start' }));
 					rooms[ws.roomId].players.forEach(player => {
 						player.send(JSON.stringify({ type: 'game_start' }));
 					});
+					handleGameLogic(rooms[ws.roomId]); // Start the game logic
 					break;
 				case 'submit_answer':
 					console.log(`User ${ws.user?.id} answered:`, data.answer);
@@ -172,6 +169,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					break;
 			}
         } catch (e) {
+			console.error('Error processing message:', e);
             ws.close(1007, 'Invalid message format');
         }
     });
@@ -194,7 +192,6 @@ wss.on('connection', (ws: CustomWebSocket) => {
 		}
 		if (ws.roomId && rooms[ws.roomId]) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
-			rooms[ws.roomId].host_ws?.send(JSON.stringify({ type: 'player_left', username: ws.username }));
 			rooms[ws.roomId].players.forEach(player => {
 				player.send(JSON.stringify({ type: 'player_left', username: ws.username }));
 			});
@@ -203,3 +200,76 @@ wss.on('connection', (ws: CustomWebSocket) => {
 });
 
 console.log(`WebSocket server is running on ws://localhost:${PORT}`);
+
+
+/* ========= */
+/* GAME LOOP */
+/* ========= */
+
+const handleGameLogic = async (room: Room) => {
+	if(!room || room.state !== 'in-game') throw new Error('Invalid room state for game logic');
+
+	try {
+		// Fetch questions using Kysely
+		const questions = await db
+			.selectFrom('questions')
+			.selectAll()
+			.where('quiz_id', '=', room.quizId)
+			.execute();
+
+		if (questions.length === 0) {
+			console.log('No questions found for this quiz.');
+			return;
+		}
+
+		const questionIds = questions.map((q: any) => q.id);
+
+		// Fetch answers for these questions
+		const answers = await db
+			.selectFrom('answers')
+			.selectAll()
+			.where('question_id', 'in', questionIds)
+			.execute();
+
+		// Attach the corresponding answers strictly to each question
+		room.questions = questions.map((q: any) => ({
+			...q,
+			answers: answers.filter((a: any) => a.question_id === q.id)
+		}));
+	} catch (err) {
+		console.error('Error fetching questions and answers:', err);
+		return;
+	}
+
+	sendNextQuestion(room);
+}
+
+const sendNextQuestion = (room: Room) => {
+	const question = room.questions[room.questionIndex];
+	console.log(`Sending question ${room.questionIndex + 1}: ${question.question_text}`);
+	room.questionIndex++;
+	room.players.forEach(player => {
+		player.send(JSON.stringify({ type: 'next_question' }));
+
+		const strippedQuestion: any = {
+			question_text: question.question_text,
+			question_type: question.question_type
+		};
+		const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
+		if (question.time_limit !== null) {
+			strippedQuestion.time_limit = question.time_limit;
+		}
+		setTimeout(() => {
+			player.send(JSON.stringify({ 
+				type: 'question',
+				question: strippedQuestion
+			}));
+		}, 3000);
+		setTimeout(() => {
+			player.send(JSON.stringify({ 
+				type: 'answers',
+				answers: strippedAnswers
+			}));
+		}, 6000);
+	})
+}

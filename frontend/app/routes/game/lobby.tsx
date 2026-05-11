@@ -100,6 +100,8 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     setPin("");
                     setPlayers([]);
                     break;
+                case "game_start":
+                    break;
                 case 'error':
                     console.error('Error from server:', lastMessage.message);
                     setError(lastMessage.message);
