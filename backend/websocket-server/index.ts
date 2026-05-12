@@ -92,7 +92,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 							ws.close(1008, 'Username too long');
 							return;
 						}
-						if(!/^[a-zA-Z0-9_]+$/.test(data.username)) {
+						if(!/^[a-zA-Z0-9_ -]+$/.test(data.username)) {
 							ws.close(1008, 'Username contains invalid characters');
 							return;
 						}
