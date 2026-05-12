@@ -22,7 +22,7 @@ import { useToggle } from '~/hooks/useToggle';
 import { useNotification } from '~/context/NotificationContext';
 
 export default function ComponentsDemo() {
-    const [isToggleOn, setIsToggleOn] = useToggle(false);
+    const [isToggleOn, setIsToggleOn] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { notify } = useNotification();
     
