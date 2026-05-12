@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
 import db from './db';
 import { sendToPlayers, executeForEachPlayer } from './util/util';
