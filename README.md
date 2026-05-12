@@ -13,8 +13,19 @@ Kahoot clone
 
 ## backend
 
+### php.ini extensions
+vzdy mbstring,openssl
+
+dle pouzite databaze
+
+sqlite
++ pdo_sqlite, sqlite3
+
+mysql
++ pdo_mysql, mysqli
+
 ### websocket-server
-`cd .\backend\websocket-server`
+`cd .\backend\websocket-server\`
 
 `npm install`
 
