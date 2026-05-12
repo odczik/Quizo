@@ -84,7 +84,27 @@ class QuizController extends Controller
 
     public function addQuizQuestion(Request $request, Quiz $quiz)
     {
-        // Logic to add a question to a quiz
+        $this->authorize('manage', $quiz); // Returns 403 if unauthorized
+
+        $request->validate([
+            'question_text' => 'required|string|max:255',
+            'question_type' => 'sometimes|required|in:multiple_choice',
+
+
+            // Inputs for answers table
+            'answers' => 'required|array',
+            'answers.*.text' => 'required|string|max:255',
+            'answers.*.is_correct' => 'required|boolean',
+        ]);
+
+        $question = $quiz->questions()->create([
+            'question_text' => $request->question_text,
+            'question_type' => $request->question_type,
+        ]);
+
+        $question->answers()->createMany($request->answers);
+
+        return response()->json($question, 201);
     }
 
     public function updateQuizQuestion(Request $request, Quiz $quiz, Question $question)
