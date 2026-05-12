@@ -141,20 +141,20 @@ export default function ComponentsDemo() {
                         <div>
                         <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Host Screen (With Text)</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <AnswerButton color="red" text="Mitochondria" />
-                            <AnswerButton color="blue" text="Nucleus" />
-                            <AnswerButton color="yellow" text="Ribosome" />
-                            <AnswerButton color="green" text="Chloroplast" />
+                            <AnswerButton color={1} text="Mitochondria" />
+                            <AnswerButton color={2} text="Nucleus" />
+                            <AnswerButton color={3} text="Ribosome" />
+                            <AnswerButton color={4} text="Chloroplast" />
                         </div>
                         </div>
 
                         <div>
                         <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Mobile Player Screen (Shapes Only)</h3>
                         <div className="grid grid-cols-2 gap-4 max-w-sm">
-                            <AnswerButton color="red" showShapeOnly />
-                            <AnswerButton color="blue" showShapeOnly />
-                            <AnswerButton color="yellow" showShapeOnly />
-                            <AnswerButton color="green" showShapeOnly />
+                            <AnswerButton color={1} showShapeOnly />
+                            <AnswerButton color={2} showShapeOnly />
+                            <AnswerButton color={3} showShapeOnly />
+                            <AnswerButton color={4} showShapeOnly />
                         </div>
                         </div>
                     </div>
