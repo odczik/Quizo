@@ -16,23 +16,29 @@ Kahoot clone
 ### websocket-server
 
 `cd .\backend\websocket-server`
+
 `npm install`
-`node index.js`
+
+`npm run dev`
 
 ### kdyz mam stare php
 `cd .\backend\web-server\`
 
-`composer install --ignore-platform-reqs`
+`npm install`
 
-`php artisan key:generate`
+`composer install --ignore-platform-reqs`
 
 `..\..\php-8.5.5\php.exe artisan serve`
 
 ### kdyz mam normalni php
 `cd .\backend\web-server\`
 
+`npm install`
+
 `composer install`
 
-`php artisan key:generate`
+`php artisan migrate`
 
-`php artisan serve
+`php artisan db:seed`
+
+`php artisan serve`
