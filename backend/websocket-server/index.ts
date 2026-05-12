@@ -92,8 +92,8 @@ wss.on('connection', (ws: CustomWebSocket) => {
 							ws.close(1008, 'Username too long');
 							return;
 						}
-						if(!/^[a-zA-Z0-9_]+$/.test(data.username)) {
-							ws.close(1008, 'Username contains invalid characters');
+						if(!/^[a-zA-Z0-9_ -]+$/.test(data.username)) {
+							ws.send(JSON.stringify({ type: 'error', message: 'Username contains invalid characters. Only alphanumeric and spaces, hyphens and underscores allowed.' }));
 							return;
 						}
 						if(rooms[data.gameId].state !== 'lobby') {
@@ -181,7 +181,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 				delete rooms[ws.roomId];
 			}
 		}
-		if (ws.roomId && rooms[ws.roomId]) {
+		if (ws.roomId && rooms[ws.roomId] && ws !== rooms[ws.roomId].host_ws) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
 			sendToPlayers(rooms[ws.roomId], { type: 'player_left', username: ws.username });
 		}

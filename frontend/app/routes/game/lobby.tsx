@@ -92,6 +92,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     setJoined(false);
                     setGameFound(false);
                     setPlayers([]);
+                    setError("");
                     break;
                 case 'game_ended':
                     notify(lastMessage.message || 'Game has ended.', 'info');
