@@ -181,7 +181,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 				delete rooms[ws.roomId];
 			}
 		}
-		if (ws.roomId && rooms[ws.roomId]) {
+		if (ws.roomId && rooms[ws.roomId] && ws !== rooms[ws.roomId].host_ws) {
 			rooms[ws.roomId].players = rooms[ws.roomId].players.filter(player => player !== ws);
 			sendToPlayers(rooms[ws.roomId], { type: 'player_left', username: ws.username });
 		}
