@@ -58,12 +58,12 @@ class AuthenticationController extends Controller
         return response()->noContent();
     }
 
-        public function getUserData(Request $request)
+    public function getUserData(Request $request)
     {
         return response()->json($request->user());
     }
 
-        public function updateUserData(Request $request)
+    public function updateUserData(Request $request)
     {
         $request->validate([
             'name' => 'sometimes|required|min:3',
@@ -75,11 +75,16 @@ class AuthenticationController extends Controller
         return response()->json($request->user());
     }
 
-        public function updateUserPassword(Request $request)
+    public function updateUserPassword(Request $request)
     {
         $request->validate([
+            'current_password' => 'required|min:8',
             'password' => 'required|min:8|confirmed'
         ]);
+
+        if (!Hash::check($request->current_password, $request->user()->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
 
         $request->user()->update(['password' => Hash::make($request->password)]);
 
@@ -88,10 +93,14 @@ class AuthenticationController extends Controller
 
     public function deleteUser(Request $request)
     {
-        /*$request->validate([
-            'password' => 'required|min:8|confirmed'
-        ]);*/
-        
+        $request->validate([
+            'password' => 'required|min:8'
+        ]);
+
+        if (!Hash::check($request->password, $request->user()->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
         $request->user()->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
