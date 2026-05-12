@@ -93,7 +93,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 							return;
 						}
 						if(!/^[a-zA-Z0-9_ -]+$/.test(data.username)) {
-							ws.close(1008, 'Username contains invalid characters');
+							ws.send(JSON.stringify({ type: 'error', message: 'Username contains invalid characters. Only alphanumeric and spaces, hyphens and underscores allowed.' }));
 							return;
 						}
 						if(rooms[data.gameId].state !== 'lobby') {
