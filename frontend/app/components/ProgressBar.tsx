@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface ProgressBarProps {
     progress: number; // 0 to 100
-    color?: 'blue' | 'green' | 'red' | 'yellow';
+    color?: 'blue' | 'green' | 'red' | 'yellow' | 'white';
     className?: string;
     height?: 'sm' | 'md' | 'lg';
 }
@@ -16,6 +16,7 @@ export function ProgressBar({ progress, color = 'blue', className = '', height =
         green: 'bg-green-500',
         red: 'bg-red-500',
         yellow: 'bg-yellow-500',
+        white: 'bg-white',
     };
 
     const heights = {

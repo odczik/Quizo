@@ -6,6 +6,7 @@ import { useMatches } from "react-router";
 import { AnswerButton } from "~/components/AnswerButton";
 import { Spinner } from "~/components/Spinner";
 import { Button } from "~/components/Button";
+import { ProgressBar } from "~/components/ProgressBar";
 
 export default function Game() {
     const { sendMessage, lastMessage, isConnected } = useGameSocket();
@@ -19,8 +20,11 @@ export default function Game() {
     const [answered, setAnswered] = useState(false);
     const [isHost] = useState(matches[matches.length - 1].id === "host-lobby");
     const [results, setResults] = useState<any | null>(null);
+    const [answerTimer, setAnswerTimer] = useState<number>(100);
 
     useEffect(() => {
+        let activeInterval: ReturnType<typeof setInterval>;
+
         if (lastMessage) {
             switch (lastMessage.type) {
                 case "next_question":
@@ -42,6 +46,22 @@ export default function Game() {
                     break;
                 case "question":
                     setQuestion(lastMessage.question);
+
+                    const duration = 3000;
+                    const startTime = Date.now();
+                    setAnswerTimer(100);
+
+                    activeInterval = setInterval(() => {
+                        const elapsed = Date.now() - startTime;
+                        const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+                        
+                        setAnswerTimer(remaining);
+
+                        if (remaining <= 0) {
+                            clearInterval(activeInterval);
+                        }
+                    }, 100); // 100ms interval plays much nicer with CSS transition-duration-300
+
                     break;
                 case "answers":
                     setAnswers(lastMessage.answers);
@@ -62,6 +82,10 @@ export default function Game() {
                     break;
             }
         }
+        
+        return () => {
+            if (activeInterval) clearInterval(activeInterval);
+        };
     }, [lastMessage]);
 
     switch (gameState) {
@@ -128,7 +152,7 @@ export default function Game() {
                             )}
                             
                             <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
-                                {answers && (
+                                {answers ? (
                                     <div className="w-full h-full grid grid-cols-2 gap-4">
                                         {answers.map((answer: any, index: number) => (
                                             <AnswerButton 
@@ -144,6 +168,8 @@ export default function Game() {
                                             />
                                         ))}
                                     </div>
+                                ) : (
+                                    <ProgressBar progress={answerTimer} color="white" className="w-full, !bg-transparent" />
                                 )}
                             </div>
                             </>
