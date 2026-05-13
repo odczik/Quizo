@@ -155,7 +155,12 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					handleGameLogic(rooms[ws.roomId]); // Start the game logic
 					break;
 				case 'submit_answer':
-					console.log(`User ${ws.user?.id} answered:`, data.answer);
+					if (!ws.roomId || !rooms[ws.roomId]) return;
+
+					console.log(`Received answer from ${ws.username}:`, data);
+					const timeTaken = new Date().getTime() - (rooms[ws.roomId].question_time?.getTime() || 0);
+					console.log(`Time taken to answer: ${timeTaken} ms`);
+
 					break;
 				default:
 					console.log('Unknown message type:', data.type);
@@ -244,7 +249,7 @@ const sendNextQuestion = (room: Room) => {
 			question_text: question.question_text,
 			question_type: question.question_type
 		};
-		const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
+		const strippedAnswers = question.answers?.map((a: any, index: number) => ({ id: index + 1, answer_text: a.answer_text }));
 		if (question.time_limit !== null) {
 			strippedQuestion.time_limit = question.time_limit;
 		}
@@ -255,6 +260,7 @@ const sendNextQuestion = (room: Room) => {
 			}));
 		}, 3000);
 		setTimeout(() => {
+			if(!room.question_time) room.question_time = new Date(); // Mark the time when the question was sent for point calculation later
 			player.send(JSON.stringify({ 
 				type: 'answers',
 				answers: strippedAnswers

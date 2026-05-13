@@ -15,6 +15,7 @@ export default function Game() {
     const [counter, setCounter] = useState(3);
     const [question, setQuestion] = useState<any | null>(null);
     const [answers, setAnswers] = useState<any | null>(null);
+    const [answered, setAnswered] = useState(false);
     const [isHost] = useState(matches[matches.length - 1].id === "host-lobby");
 
     useEffect(() => {
@@ -25,6 +26,7 @@ export default function Game() {
                     setCounter(3);
                     setQuestion(null);
                     setAnswers(null);
+                    setAnswered(false);
                     setTimeout(() => {
                         setCounter(2);
                         setTimeout(() => {
@@ -63,29 +65,37 @@ export default function Game() {
         case 'in-progress':
             return (
                 <div className="flex flex-col h-screen w-full">
-                    
-                    <div className="flex-1 flex items-center justify-center p-4">
-                        <h1 className="text-4xl md:text-6xl font-bold text-center">{question.question_text && question.question_text}</h1>
-                    </div>
-                    
-                    <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
-                        {answers && (
-                            <div className="w-full h-full grid grid-cols-2 gap-4">
-                                {answers.map((answer: any, index: number) => (
-                                    <AnswerButton 
-                                        key={answer.id} 
-                                        color={index + 1}
-                                        text={answer.answer_text} 
-                                        className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
-                                        onClick={() => {
-                                            sendMessage("submit_answer", { answerId: answer.id });
-                                        }} 
-                                        disabled={isHost}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    {answered ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            Waiting for the next question... <Spinner className="ml-4" />
+                        </div>
+                    ) : (
+                        <>
+                        <div className="flex-1 flex items-center justify-center p-4">
+                            <h1 className="text-4xl md:text-6xl font-bold text-center">{question.question_text && question.question_text}</h1>
+                        </div>
+                        
+                        <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
+                            {answers && (
+                                <div className="w-full h-full grid grid-cols-2 gap-4">
+                                    {answers.map((answer: any, index: number) => (
+                                        <AnswerButton 
+                                            key={answer.id} 
+                                            color={index + 1}
+                                            text={answer.answer_text} 
+                                            className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
+                                            onClick={() => {
+                                                sendMessage("submit_answer", { answerId: answer.id });
+                                                setAnswered(true);
+                                            }}
+                                            disabled={isHost}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        </>
+                    )}
                 </div>
             );
         case 'finished':

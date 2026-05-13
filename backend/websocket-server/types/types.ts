@@ -34,4 +34,5 @@ export interface Room {
 	state: 'lobby' | 'in-game' | 'finished';
 	questions: Question[];
     questionIndex: number;
+    question_time?: Date;
 }
