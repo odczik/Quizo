@@ -34,6 +34,7 @@ export default function Game() {
                     setAnswers(null);
                     setAnswered(false);
                     setResults(null);
+                    setAnswerTimer(100);
                     setTimeout(() => {
                         setCounter(2);
                         setTimeout(() => {
@@ -49,7 +50,6 @@ export default function Game() {
 
                     const duration = 3000;
                     const startTime = Date.now();
-                    setAnswerTimer(100);
 
                     activeInterval = setInterval(() => {
                         const elapsed = Date.now() - startTime;
