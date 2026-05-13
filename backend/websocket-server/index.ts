@@ -321,6 +321,7 @@ const updatePlayerScores = (room: Room) => {
 		type: 'update_scores',
 		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
 	}));
+	
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ 
 			type: 'answer_result',
@@ -330,5 +331,7 @@ const updatePlayerScores = (room: Room) => {
 		player.aquiredPoints = 0;
 		player.was_correct = null;
 	}, { excludeHost: true });
+
 	room.players_answered = 0;
+	room.question_time = undefined;
 }
