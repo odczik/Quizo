@@ -190,6 +190,18 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					}
 					updatePlayerScores(rooms[ws.roomId]);
 					break;
+				case 'next_question':
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can move to the next question' }));
+						return;
+					}
+					if(rooms[ws.roomId].questionIndex >= rooms[ws.roomId].questions.length) {
+						// No more questions, end the game
+						rooms[ws.roomId].state = 'finished';
+						sendToPlayers(rooms[ws.roomId], { type: 'game_finished' });
+					} else {
+						sendNextQuestion(rooms[ws.roomId]);
+					}
 				default:
 					console.log('Unknown message type:', data.type);
 					break;
@@ -305,6 +317,10 @@ const sendNextQuestion = (room: Room) => {
 	});
 }
 const updatePlayerScores = (room: Room) => {
+	room.host_ws?.send(JSON.stringify({
+		type: 'update_scores',
+		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
+	}));
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ 
 			type: 'answer_result',
@@ -313,10 +329,6 @@ const updatePlayerScores = (room: Room) => {
 		}));
 		player.aquiredPoints = 0;
 		player.was_correct = null;
-	});
-	room.host_ws?.send(JSON.stringify({
-		type: 'update_scores',
-		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
-	}));
+	}, { excludeHost: true });
 	room.players_answered = 0;
 }

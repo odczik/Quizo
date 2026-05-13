@@ -18,6 +18,7 @@ export default function Game() {
     const [answers, setAnswers] = useState<any | null>(null);
     const [answered, setAnswered] = useState(false);
     const [isHost] = useState(matches[matches.length - 1].id === "host-lobby");
+    const [results, setResults] = useState<any | null>(null);
 
     useEffect(() => {
         if (lastMessage) {
@@ -28,6 +29,7 @@ export default function Game() {
                     setQuestion(null);
                     setAnswers(null);
                     setAnswered(false);
+                    setResults(null);
                     setTimeout(() => {
                         setCounter(2);
                         setTimeout(() => {
@@ -49,6 +51,12 @@ export default function Game() {
                     console.log('Player left:', lastMessage.username);
                     notify(`${lastMessage.username} has left the game.`, "warning");
                     break;
+                case 'answer_result':
+                    setResults(lastMessage);
+                    break;
+                case 'update_scores':
+                    setResults(lastMessage);
+                    break;
                 default:
                     console.log(lastMessage);
                     break;
@@ -67,46 +75,79 @@ export default function Game() {
             return (
                 <div className="flex flex-col h-screen w-full">
                     {answered ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            Waiting for the next question... <Spinner className="ml-4" />
-                        </div>
-                    ) : (
-                        <>
-                        <div className="flex-1 flex items-center justify-center p-4">
-                            <h1 className="text-4xl md:text-6xl font-bold text-center">{question.question_text && question.question_text}</h1>
-                        </div>
-
-                        {isHost && (
-                            <div className="flex justify-center mb-4">
-                                <Button 
-                                    variant="primary" 
-                                    onClick={() => sendMessage("skip_question")}
-                                >
-                                    Next Question
-                                </Button>
+                        results ? (
+                            <div>
+                                {results.correct ? (
+                                    <div className="flex-1 flex items-center justify-center text-green-600">
+                                        Correct! +{results.points} points
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex items-center justify-center text-red-600">
+                                        Incorrect!
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        
-                        <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
-                            {answers && (
-                                <div className="w-full h-full grid grid-cols-2 gap-4">
-                                    {answers.map((answer: any, index: number) => (
-                                        <AnswerButton 
-                                            key={answer.id} 
-                                            color={index + 1}
-                                            text={answer.answer_text} 
-                                            className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
-                                            onClick={() => {
-                                                sendMessage("submit_answer", { answerId: answer.id });
-                                                setAnswered(true);
-                                            }}
-                                            disabled={isHost}
-                                        />
-                                    ))}
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center">
+                                Waiting for the next question... <Spinner className="ml-4" />
+                            </div>
+                        )
+                    ) : (
+                        results ? (
+                            <div>
+                                {results.players && results.players.map((player: any) => (
+                                    <div key={player.username} className="flex items-center justify-between p-4 border-b">
+                                        <span>{player.username}</span>
+                                        <span>{player.points} points {player.aquiredPoints > 0 && `( +${player.aquiredPoints} )`}</span>
+                                    </div>
+                                ))}
+                                <div className="flex justify-center mt-4">
+                                    <Button 
+                                        variant="primary" 
+                                        onClick={() => sendMessage("next_question")}
+                                    >
+                                        Next Question
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                            <div className="flex-1 flex items-center justify-center p-4">
+                                <h1 className="text-4xl md:text-6xl font-bold text-center">{question ? question.question_text : <Spinner />}</h1>
+                            </div>
+
+                            {isHost && (
+                                <div className="flex justify-center mb-4">
+                                    <Button 
+                                        variant="primary" 
+                                        onClick={() => sendMessage("skip_question")}
+                                    >
+                                        Next Question
+                                    </Button>
                                 </div>
                             )}
-                        </div>
-                        </>
+                            
+                            <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
+                                {answers && (
+                                    <div className="w-full h-full grid grid-cols-2 gap-4">
+                                        {answers.map((answer: any, index: number) => (
+                                            <AnswerButton 
+                                                key={answer.id} 
+                                                color={index + 1}
+                                                text={answer.answer_text} 
+                                                className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
+                                                onClick={() => {
+                                                    sendMessage("submit_answer", { answerId: answer.id });
+                                                    setAnswered(true);
+                                                }}
+                                                disabled={isHost}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            </>
+                        )
                     )}
                 </div>
             );
