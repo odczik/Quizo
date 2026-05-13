@@ -169,6 +169,14 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					const currentQuestion = rooms[ws.roomId].questions[rooms[ws.roomId].questionIndex - 1];
 					const selectedAnswer = currentQuestion.answers?.find(a => a.id === data.answerId);
 
+					if (selectedAnswer && selectedAnswer.is_correct) {
+						// Simple scoring: More points for faster answers
+						const pointsEarned = rooms[ws.roomId].default_time_limit - Math.floor(timeTaken / 1000);
+						ws.points = (ws.points || 0) + pointsEarned;
+						ws.was_correct = true;
+					} else {
+						ws.was_correct = false;
+					}
 					break;
 				default:
 					console.log('Unknown message type:', data.type);
