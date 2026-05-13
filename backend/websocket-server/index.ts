@@ -66,9 +66,11 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						players: [], // Add the host as the first player in the room
 						host_ws: ws, // Store the host's WebSocket for later reference
 						quizId: quizId,
+						default_time_limit: 20, // Default value, will be updated when the game starts
 						state: 'lobby',
 						questions: [],
-						questionIndex: 0
+						questionIndex: 0,
+						players_answered: 0
 					};
 
 					ws.send(JSON.stringify({ type: 'game_created', gameId: gameId }));
@@ -103,6 +105,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 						ws.username = data.username;
 						ws.roomId = data.gameId;
+						ws.points = 0;
 
 						// Add player to the room if username is available
 						if(rooms[data.gameId].players.some(p => p.username === data.username)) {
@@ -159,7 +162,12 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 					console.log(`Received answer from ${ws.username}:`, data);
 					const timeTaken = new Date().getTime() - (rooms[ws.roomId].question_time?.getTime() || 0);
-					console.log(`Time taken to answer: ${timeTaken} ms`);
+
+					rooms[ws.roomId].players_answered = (rooms[ws.roomId].players_answered || 0) + 1;
+
+					// Validate the answer
+					const currentQuestion = rooms[ws.roomId].questions[rooms[ws.roomId].questionIndex - 1];
+					const selectedAnswer = currentQuestion.answers?.find(a => a.id === data.answerId);
 
 					break;
 				default:
@@ -230,6 +238,14 @@ const handleGameLogic = async (room: Room) => {
 			...q,
 			answers: answers.filter((a: any) => a.question_id === q.id)
 		}));
+
+		const defaultTimeLimit = await db
+			.selectFrom('quizzes')
+			.select('default_time_limit')
+			.where('id', '=', room.quizId)
+			.executeTakeFirst();
+
+		room.default_time_limit = defaultTimeLimit?.default_time_limit || 20;
 	} catch (err) {
 		console.error('Error fetching questions and answers:', err);
 		return;
@@ -249,7 +265,7 @@ const sendNextQuestion = (room: Room) => {
 			question_text: question.question_text,
 			question_type: question.question_type
 		};
-		const strippedAnswers = question.answers?.map((a: any, index: number) => ({ id: index + 1, answer_text: a.answer_text }));
+		const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
 		if (question.time_limit !== null) {
 			strippedQuestion.time_limit = question.time_limit;
 		}
