@@ -63,13 +63,13 @@ export default function Game() {
         case 'in-progress':
             return (
                 <div className="flex flex-col h-screen w-full">
-                    {/* Upper 2/3: Question */}
+                    
                     <div className="flex-1 flex items-center justify-center p-4">
-                        <h1 className="text-4xl md:text-6xl font-bold text-center">{question.question_text}</h1>
+                        <h1 className="text-4xl md:text-6xl font-bold text-center">{question.question_text && question.question_text}</h1>
                     </div>
-                    {/* Lower 1/3: Answers */}
+                    
                     <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
-                        {answers && !isHost && (
+                        {answers && (
                             <div className="w-full h-full grid grid-cols-2 gap-4">
                                 {answers.map((answer: any, index: number) => (
                                     <AnswerButton 
@@ -80,6 +80,7 @@ export default function Game() {
                                         onClick={() => {
                                             sendMessage("submit_answer", { answerId: answer.id });
                                         }} 
+                                        disabled={isHost}
                                     />
                                 ))}
                             </div>
