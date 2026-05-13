@@ -8,6 +8,7 @@ export interface CustomWebSocket extends WebSocket {
     username?: string;
     roomId?: string;
     points?: number;
+    aquiredPoints?: number;
     was_correct?: boolean | null;
 }
 

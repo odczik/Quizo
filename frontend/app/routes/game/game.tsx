@@ -5,6 +5,7 @@ import { useMatches } from "react-router";
 
 import { AnswerButton } from "~/components/AnswerButton";
 import { Spinner } from "~/components/Spinner";
+import { Button } from "~/components/Button";
 
 export default function Game() {
     const { sendMessage, lastMessage, isConnected } = useGameSocket();
@@ -74,6 +75,17 @@ export default function Game() {
                         <div className="flex-1 flex items-center justify-center p-4">
                             <h1 className="text-4xl md:text-6xl font-bold text-center">{question.question_text && question.question_text}</h1>
                         </div>
+
+                        {isHost && (
+                            <div className="flex justify-center mb-4">
+                                <Button 
+                                    variant="primary" 
+                                    onClick={() => sendMessage("skip_question")}
+                                >
+                                    Next Question
+                                </Button>
+                            </div>
+                        )}
                         
                         <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
                             {answers && (

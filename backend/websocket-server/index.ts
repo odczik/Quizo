@@ -173,10 +173,22 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						// Simple scoring: More points for faster answers
 						const pointsEarned = rooms[ws.roomId].default_time_limit - Math.floor(timeTaken / 1000);
 						ws.points = (ws.points || 0) + pointsEarned;
+						ws.aquiredPoints = pointsEarned;
 						ws.was_correct = true;
 					} else {
 						ws.was_correct = false;
 					}
+
+					if(rooms[ws.roomId].players_answered === rooms[ws.roomId].players.length) {
+						updatePlayerScores(rooms[ws.roomId]);
+					}
+					break;
+				case 'skip_question':
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can skip questions' }));
+						return;
+					}
+					updatePlayerScores(rooms[ws.roomId]);
 					break;
 				default:
 					console.log('Unknown message type:', data.type);
@@ -291,4 +303,20 @@ const sendNextQuestion = (room: Room) => {
 			}));
 		}, 6000);
 	});
+}
+const updatePlayerScores = (room: Room) => {
+	executeForEachPlayer(room, (player) => {
+		player.send(JSON.stringify({ 
+			type: 'answer_result',
+			correct: player.was_correct,
+			points: player.aquiredPoints
+		}));
+		player.aquiredPoints = 0;
+		player.was_correct = null;
+	});
+	room.host_ws?.send(JSON.stringify({
+		type: 'update_scores',
+		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
+	}));
+	room.players_answered = 0;
 }
