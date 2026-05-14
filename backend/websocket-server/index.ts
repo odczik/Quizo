@@ -179,7 +179,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 						// Award points based on speed
 						const pointsEarned = Math.round(maxPoints * timeFraction);
-						
+
 						ws.points = (ws.points || 0) + pointsEarned;
 						ws.aquiredPoints = pointsEarned;
 						ws.was_correct = true;
@@ -251,6 +251,12 @@ console.log(`WebSocket server is running on ws://localhost:${PORT}`);
 const handleGameLogic = async (room: Room) => {
 	if(!room || room.state !== 'in-game') throw new Error('Invalid room state for game logic');
 
+	await loadQuestionsIntoMemory(room);
+
+	sendNextQuestion(room);
+}
+
+const loadQuestionsIntoMemory = async (room: Room) => {
 	try {
 		// Fetch questions using Kysely
 		const questions = await db
@@ -290,8 +296,6 @@ const handleGameLogic = async (room: Room) => {
 		console.error('Error fetching questions and answers:', err);
 		return;
 	}
-
-	sendNextQuestion(room);
 }
 
 const sendNextQuestion = (room: Room) => {
