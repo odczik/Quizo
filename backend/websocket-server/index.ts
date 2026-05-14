@@ -171,7 +171,15 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 					if (selectedAnswer && selectedAnswer.is_correct) {
 						// Simple scoring: More points for faster answers
-						const pointsEarned = rooms[ws.roomId].default_time_limit - Math.floor(timeTaken / 1000);
+						const maxPoints = 1000;
+						const totalTimeMs = rooms[ws.roomId].default_time_limit * 1000;
+
+						// Calculate percentage of time remaining (0.0 to 1.0)
+						const timeFraction = Math.max(0, 1 - (timeTaken / totalTimeMs));
+
+						// Award points based on speed
+						const pointsEarned = Math.round(maxPoints * timeFraction);
+						
 						ws.points = (ws.points || 0) + pointsEarned;
 						ws.aquiredPoints = pointsEarned;
 						ws.was_correct = true;
