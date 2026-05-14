@@ -46,6 +46,7 @@ export default function Game() {
                     }, 1000);
                     break;
                 case "question":
+                    console.log(lastMessage);
                     setQuestion(lastMessage.question);
 
                     const duration = 3000;
@@ -97,7 +98,12 @@ export default function Game() {
             );
         case 'in-progress':
             return (
-                <div className="flex flex-col h-screen w-full">
+                <div className="relative flex flex-col h-screen w-full">
+                    {question && (
+                        <div className="absolute top-4 left-4 md:top-6 md:left-6 bg-black/20 backdrop-blur-md border border-white/10 text-white/90 font-bold text-lg md:text-2xl px-5 py-2 rounded-2xl drop-shadow-md z-50 pointer-events-none">
+                            {question.question_index} / {question.questions_length}
+                        </div>
+                    )}
                     {answered ? (
                         results ? (
                             <div className="flex-1 flex flex-col items-center justify-center w-full h-full">

@@ -296,6 +296,8 @@ const loadQuestionsIntoMemory = async (room: Room) => {
 		console.error('Error fetching questions and answers:', err);
 		return;
 	}
+
+	// sendToPlayers(room, { type: 'questions_loaded', totalQuestions: room.questions.length });
 }
 
 const sendNextQuestion = (room: Room) => {
@@ -307,7 +309,9 @@ const sendNextQuestion = (room: Room) => {
 
 		const strippedQuestion: any = {
 			question_text: question.question_text,
-			question_type: question.question_type
+			question_type: question.question_type,
+			question_index: room.questionIndex,
+			questions_length: room.questions.length
 		};
 		const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
 		if (question.time_limit !== null) {
