@@ -100,14 +100,23 @@ export default function Game() {
                 <div className="flex flex-col h-screen w-full">
                     {answered ? (
                         results ? (
-                            <div>
+                            <div className="flex-1 flex flex-col items-center justify-center w-full h-full">
                                 {results.correct ? (
-                                    <div className="flex-1 flex items-center justify-center text-green-600">
-                                        Correct! +{results.points} points
+                                    <div className="flex flex-col items-center justify-center text-white font-bold text-4xl md:text-6xl drop-shadow-md space-y-6">
+                                        <svg className="w-24 h-24 md:w-32 md:h-32 text-green-500 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Correct!</span>
+                                        <span className="text-2xl md:text-3xl bg-black/20 px-6 py-3 rounded-full shadow-inner">
+                                            +{results.points} points
+                                        </span>
                                     </div>
                                 ) : (
-                                    <div className="flex-1 flex items-center justify-center text-red-600">
-                                        Incorrect!
+                                    <div className="flex flex-col items-center justify-center text-white font-bold text-4xl md:text-6xl drop-shadow-md space-y-6">
+                                        <svg className="w-24 h-24 md:w-32 md:h-32 text-red-500 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span>Incorrect!</span>
                                     </div>
                                 )}
                             </div>
@@ -118,20 +127,49 @@ export default function Game() {
                         )
                     ) : (
                         results ? (
-                            <div>
-                                {results.players && results.players.map((player: any) => (
-                                    <div key={player.username} className="flex items-center justify-between p-4 border-b">
-                                        <span>{player.username}</span>
-                                        <span>{player.points} points {player.aquiredPoints > 0 && `( +${player.aquiredPoints} )`}</span>
+                            <div className="flex-1 flex flex-col items-center justify-center w-full p-4 overflow-y-auto">
+                                <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
+                                    <h2 className="text-3xl md:text-5xl font-bold text-center text-white drop-shadow-md mb-6">
+                                        Leaderboard
+                                    </h2>
+                                    <div className="flex flex-col space-y-3">
+                                        {results.players && [...results.players].sort((a: any, b: any) => b.points - a.points).map((player: any, index: number) => (
+                                            <div 
+                                                key={player.username} 
+                                                className="flex items-center justify-between p-4 rounded-xl bg-white/10 shadow-sm border border-white/5"
+                                            >
+                                                <div className="flex items-center space-x-4 md:space-x-6">
+                                                    <span className="font-bold text-xl md:text-2xl text-white/50 w-8 text-right">
+                                                        {index + 1}
+                                                    </span>
+                                                    <span className="font-bold text-xl md:text-2xl text-white drop-shadow-sm">
+                                                        {player.username}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center space-x-4">
+                                                    {player.aquiredPoints > 0 && (
+                                                        <span className="text-sm md:text-base font-bold text-green-300 bg-black/40 px-3 py-1 rounded-full border border-white/5 shadow-inner">
+                                                            +{player.aquiredPoints}
+                                                        </span>
+                                                    )}
+                                                    <span className="font-bold text-2xl md:text-3xl text-white drop-shadow-sm min-w-[3rem] text-right">
+                                                        {player.points}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                                <div className="flex justify-center mt-4">
-                                    <Button 
-                                        variant="primary" 
-                                        onClick={() => sendMessage("next_question")}
-                                    >
-                                        Next Question
-                                    </Button>
+                                    {isHost && (
+                                        <div className="flex justify-center mt-6 pt-4">
+                                            <Button 
+                                                variant="primary" 
+                                                className="text-lg px-8 py-3 shadow-lg"
+                                                onClick={() => sendMessage("next_question")}
+                                            >
+                                                Next Question
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : (
