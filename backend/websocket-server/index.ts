@@ -10,10 +10,6 @@ const wss = new WebSocketServer({ port: PORT });
 
 const rooms: Record<string, Room> = {}; // In-memory storage for game rooms and their players
 
-setInterval(() => {
-	console.log(rooms)
-}, 1000)
-
 wss.on('connection', (ws: CustomWebSocket) => {
     ws.isAuthenticated = false; // Mark as unauthenticated initially
 	ws.canAuthenticate = true; // Allow them to authenticate for a short window

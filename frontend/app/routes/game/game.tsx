@@ -29,7 +29,6 @@ export default function Game() {
         let activeInterval: ReturnType<typeof setInterval>;
 
         if (lastMessage) {
-            console.log(lastMessage);
             switch (lastMessage.type) {
                 case "next_question":
                     setGameState('get-ready');
