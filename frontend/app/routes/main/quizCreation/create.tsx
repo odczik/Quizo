@@ -21,7 +21,7 @@ export default function CreateQuiz() {
     if (!user) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-                <h1 className="text-4xl font-bold mb-6 text-red-600">You should not be here</h1>
+                <h1 className="text-4xl font-bold mb-6 text-red-600">Please log in or return to the browsing page</h1>
                 <p className="text-gray-600 max-w-xl">
                     Only logged-in users can create a quiz. Please sign in first, then return to the create page.
                 </p>
@@ -29,7 +29,7 @@ export default function CreateQuiz() {
                     <Button variant="primary" onClick={() => navigate('/login')}>
                         Go to Login
                     </Button>
-                    <Button onClick={() => navigate('/')}>Back to Browse</Button>
+                    <Button onClick={() => navigate('/')}>Back to Browsing page</Button>
                 </div>
             </div>
         );
