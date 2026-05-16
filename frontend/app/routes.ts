@@ -8,6 +8,7 @@ export default [
         route("demo", "routes/main/demo.tsx"),
         route("browse", "routes/main/browse.tsx"),
         route("browse/:id", "routes/quiz-detail.tsx"),
+        route("quiz/create", "routes/main/quizCreation/create.tsx"),
 
         // Auth routes
         layout("routes/layouts/no-auth-layout.tsx", [
