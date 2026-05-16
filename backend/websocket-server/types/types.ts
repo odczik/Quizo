@@ -39,4 +39,5 @@ export interface Room {
     questionIndex: number;
     question_time?: Date;
     players_answered?: number;
+    timeouts?: ReturnType<typeof setTimeout>[];
 }

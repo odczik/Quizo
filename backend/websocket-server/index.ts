@@ -74,7 +74,8 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						state: 'lobby',
 						questions: [],
 						questionIndex: 0,
-						players_answered: 0
+						players_answered: 0,
+						timeouts: []
 					};
 
 					ws.send(JSON.stringify({ type: 'game_created', gameId: gameId }));
@@ -308,35 +309,49 @@ const sendNextQuestion = (room: Room) => {
 	const question = room.questions[room.questionIndex];
 	console.log(`Sending question ${room.questionIndex + 1}: ${question.question_text}`);
 	room.questionIndex++;
+
+	const strippedQuestion: any = {
+		question_text: question.question_text,
+		question_type: question.question_type,
+		question_index: room.questionIndex,
+		questions_length: room.questions.length
+	};
+	const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
+	if (question.time_limit !== null) {
+		strippedQuestion.time_limit = question.time_limit;
+	}
+
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ type: 'next_question' }));
+	});
 
-		const strippedQuestion: any = {
-			question_text: question.question_text,
-			question_type: question.question_type,
-			question_index: room.questionIndex,
-			questions_length: room.questions.length
-		};
-		const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
-		if (question.time_limit !== null) {
-			strippedQuestion.time_limit = question.time_limit;
-		}
-		setTimeout(() => {
+	const t1 = setTimeout(() => {
+		executeForEachPlayer(room, (player) => {
 			player.send(JSON.stringify({ 
 				type: 'question',
 				question: strippedQuestion
 			}));
-		}, 3000);
-		setTimeout(() => {
-			if(!room.question_time) room.question_time = new Date(); // Mark the time when the question was sent for point calculation later
+		});
+	}, 3000);
+
+	const t2 = setTimeout(() => {
+		if(!room.question_time) room.question_time = new Date(); // Mark the time when the question was sent for point calculation later
+		executeForEachPlayer(room, (player) => {
 			player.send(JSON.stringify({ 
 				type: 'answers',
 				answers: strippedAnswers
 			}));
-		}, 6000);
-	});
+		});
+	}, 6000);
+
+	room.timeouts.push(t1, t2);
 }
 const updatePlayerScores = (room: Room) => {
+	if (room.timeouts) {
+		room.timeouts.forEach(clearTimeout);
+	}
+	room.timeouts = [];
+
 	room.host_ws?.send(JSON.stringify({
 		type: 'update_scores',
 		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
@@ -357,6 +372,11 @@ const updatePlayerScores = (room: Room) => {
 }
 
 const gameFinished = (room: Room) => {
+	if (room.timeouts) {
+		room.timeouts.forEach(clearTimeout);
+		room.timeouts = [];
+	}
+
 	room.state = 'finished';
 
 	const finalScores = room.players.map(p => ({ username: p.username, points: p.points }));
