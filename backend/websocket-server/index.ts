@@ -10,6 +10,10 @@ const wss = new WebSocketServer({ port: PORT });
 
 const rooms: Record<string, Room> = {}; // In-memory storage for game rooms and their players
 
+setInterval(() => {
+	console.log(rooms)
+}, 1000)
+
 wss.on('connection', (ws: CustomWebSocket) => {
     ws.isAuthenticated = false; // Mark as unauthenticated initially
 	ws.canAuthenticate = true; // Allow them to authenticate for a short window
@@ -229,7 +233,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 				sendToPlayers(rooms[ws.roomId], { type: 'game_ended', message: 'Host has left the game. The game has ended.' }, { excludeHost: true });
 			}
 			if(rooms[ws.roomId].state === 'in-game') {
-				rooms[ws.roomId].state = 'finished';
+				gameFinished(rooms[ws.roomId]);
 			} else {
 				delete rooms[ws.roomId];
 			}
@@ -361,4 +365,8 @@ const gameFinished = (room: Room) => {
 	room.players.forEach(player => {
 		player.send(JSON.stringify({ type: 'game_finished', placement: finalScores.findIndex(fs => fs.username === player.username) + 1, score: player.points }));
 	});
+
+	if (room.host_ws?.roomId) {
+		delete rooms[room.host_ws.roomId];
+	}
 }
