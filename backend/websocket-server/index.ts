@@ -205,8 +205,8 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					}
 					if(rooms[ws.roomId].questionIndex >= rooms[ws.roomId].questions.length) {
 						// No more questions, end the game
-						rooms[ws.roomId].state = 'finished';
-						sendToPlayers(rooms[ws.roomId], { type: 'game_finished' });
+						gameFinished(rooms[ws.roomId]);
+						return;
 					} else {
 						sendNextQuestion(rooms[ws.roomId]);
 					}
@@ -337,7 +337,7 @@ const updatePlayerScores = (room: Room) => {
 		type: 'update_scores',
 		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
 	}));
-	
+
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ 
 			type: 'answer_result',
@@ -350,4 +350,15 @@ const updatePlayerScores = (room: Room) => {
 
 	room.players_answered = 0;
 	room.question_time = undefined;
+}
+
+const gameFinished = (room: Room) => {
+	room.state = 'finished';
+
+	const finalScores = room.players.map(p => ({ username: p.username, points: p.points }));
+	room.host_ws?.send(JSON.stringify({ type: 'game_finished', finalScores }));
+
+	room.players.forEach(player => {
+		player.send(JSON.stringify({ type: 'game_finished', placement: finalScores.findIndex(fs => fs.username === player.username) + 1, score: player.points }));
+	});
 }
