@@ -15,6 +15,7 @@ export default function Game() {
 
     const [gameState, setGameState] = useState<'get-ready' | 'in-progress' | 'finished'>('get-ready');
     const [counter, setCounter] = useState(3);
+    const [timer, setTimer] = useState(0);
     const [question, setQuestion] = useState<any | null>(null);
     const [answers, setAnswers] = useState<any | null>(null);
     const [answered, setAnswered] = useState(false);
@@ -27,12 +28,16 @@ export default function Game() {
 
     useEffect(() => {
         let activeInterval: ReturnType<typeof setInterval>;
+        let timerInterval: ReturnType<typeof setInterval> | null = null;
 
         if (lastMessage) {
+            console.log(lastMessage);
             switch (lastMessage.type) {
                 case "next_question":
                     setGameState('get-ready');
                     setCounter(3);
+                    setTimer(0);
+                    if (timerInterval) clearInterval(timerInterval);
                     setQuestion(null);
                     setAnswers(null);
                     setAnswered(false);
@@ -50,6 +55,7 @@ export default function Game() {
                     break;
                 case "question":
                     setQuestion(lastMessage.question);
+                    setTimer(lastMessage.question.time_limit);
 
                     const duration = 3000;
                     const startTime = Date.now();
@@ -63,14 +69,23 @@ export default function Game() {
                         if (remaining <= 0) {
                             clearInterval(activeInterval);
                         }
-                    }, 100); // 100ms interval plays much nicer with CSS transition-duration-300
+                    }, 100); // 100ms interval plays much nicer with CSS transition-duration-
 
                     break;
                 case "answers":
                     setAnswers(lastMessage.answers);
-                    console.log("Received answers:", lastMessage.answers);
+
+                    timerInterval = setInterval(() => {
+                        setTimer(prev => {
+                            if (prev > 0) return prev - 1;
+                            if(timerInterval) clearInterval(timerInterval);
+                            return 0;
+                        });
+                    }, 1000);
+
                     break;
                 case 'answer_result':
+                    setAnswered(true);
                     setResults(lastMessage);
                     break;
                 case 'update_scores':
@@ -111,6 +126,7 @@ export default function Game() {
                             {question.question_index} / {question.questions_length}
                         </div>
                     )}
+                    {/* {!isHost ? ( */}
                     {answered ? (
                         results ? (
                             <div className="flex-1 flex flex-col items-center justify-center w-full h-full">
@@ -187,6 +203,10 @@ export default function Game() {
                             </div>
                         ) : (
                             <>
+                            <div className="flex-1 flex items-center justify-center p-4">
+                                <h1 className="text-4xl md:text-6xl font-bold text-center">{answers && timer}</h1>
+                            </div>
+
                             <div className="flex-1 flex items-center justify-center p-4">
                                 <h1 className="text-4xl md:text-6xl font-bold text-center">{question ? question.question_text : <Spinner />}</h1>
                             </div>

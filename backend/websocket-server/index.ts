@@ -211,6 +211,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					} else {
 						sendNextQuestion(rooms[ws.roomId]);
 					}
+					break;
 				default:
 					console.log('Unknown message type:', data.type);
 					break;
@@ -310,7 +311,8 @@ const sendNextQuestion = (room: Room) => {
 		question_text: question.question_text,
 		question_type: question.question_type,
 		question_index: room.questionIndex,
-		questions_length: room.questions.length
+		questions_length: room.questions.length,
+		time_limit: question.time_limit !== null ? question.time_limit : room.default_time_limit
 	};
 	const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
 	if (question.time_limit !== null) {
@@ -340,7 +342,11 @@ const sendNextQuestion = (room: Room) => {
 		});
 	}, 6000);
 
-	room.timeouts.push(t1, t2);
+	const t3 = setTimeout(() => {
+		updatePlayerScores(room);
+	}, (question.time_limit !== null ? question.time_limit : room.default_time_limit) * 1000 + 6000);
+
+	room.timeouts.push(t1, t2, t3);
 }
 const updatePlayerScores = (room: Room) => {
 	if (room.timeouts) {
@@ -356,8 +362,8 @@ const updatePlayerScores = (room: Room) => {
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ 
 			type: 'answer_result',
-			correct: player.was_correct,
-			points: player.aquiredPoints
+			correct: player.was_correct || false,
+			points: player.aquiredPoints || 0
 		}));
 		player.aquiredPoints = 0;
 		player.was_correct = null;
