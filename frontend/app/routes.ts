@@ -7,7 +7,7 @@ export default [
         index("routes/main/home.tsx"),
         route("demo", "routes/main/demo.tsx"),
         route("browse", "routes/main/browse.tsx"),
-        route("browse/:id", "routes/quiz-detail.tsx"),
+        route("browse/:id", "routes/main/quiz-detail.tsx"),
         
         // Auth routes
         layout("routes/layouts/no-auth-layout.tsx", [
