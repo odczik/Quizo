@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { apiClient } from "../utils/api";
-import { Card } from "../components/Card";
-import { Button } from "../components/Button";
-import { Spinner } from "../components/Spinner";
+import { apiClient } from "~/utils/api";
+import { Card } from "~/components/Card";
+import { Button } from "~/components/Button";
+import { Spinner } from "~/components/Spinner";
 
 export default function QuizDetail() {
     const { id } = useParams();
