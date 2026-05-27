@@ -8,7 +8,7 @@ interface AnswerButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEl
     showShapeOnly?: boolean; // Mobile players usually only see shapes, not text!
 }
 
-export function AnswerButton({ color, text, showShapeOnly = false, className = '', ...props }: AnswerButtonProps) {
+export function AnswerButton({ color, text, showShapeOnly = false, disabled = false, className = '', ...props }: AnswerButtonProps) {
     const colorStyles: Record<AnswerColorKey, string> = {
         red: 'bg-[#e21b3c] hover:bg-[#c01733] active:bg-[#9e1329]',
         blue: 'bg-[#1368ce] hover:bg-[#1059b0] active:bg-[#0d4a93]',
@@ -51,7 +51,8 @@ export function AnswerButton({ color, text, showShapeOnly = false, className = '
 
     return (
         <button
-            className={`flex items-center p-4 rounded shadow-[0_4px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-1 active:shadow-none text-white font-bold text-lg md:text-2xl min-h-[100px] w-full ${colorStyles[colorKey]} ${className}`}
+            className={`flex items-center p-4 rounded shadow-[0_4px_0_rgba(0,0,0,0.2)] transition-transform active:translate-y-1 active:shadow-none text-white font-bold text-lg md:text-2xl min-h-[100px] w-full ${colorStyles[colorKey]} ${disabled ? 'pointer-events-none opacity-100 cursor-default' : ''} ${className}`}
+            disabled={disabled}
             {...props}
         >
         <div className={`flex items-center ${showShapeOnly ? 'justify-center w-full' : 'justify-start gap-4'}`}>

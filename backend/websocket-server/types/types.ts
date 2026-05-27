@@ -8,6 +8,8 @@ export interface CustomWebSocket extends WebSocket {
     username?: string;
     roomId?: string;
     points?: number;
+    aquiredPoints?: number;
+    was_correct?: boolean | null;
 }
 
 export interface Question {
@@ -31,7 +33,11 @@ export interface Room {
     players: CustomWebSocket[];
     host_ws?: CustomWebSocket;
     quizId: number;
+    default_time_limit: number;
 	state: 'lobby' | 'in-game' | 'finished';
 	questions: Question[];
     questionIndex: number;
+    question_time?: Date;
+    players_answered?: number;
+    timeouts: ReturnType<typeof setTimeout>[];
 }

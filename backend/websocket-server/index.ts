@@ -66,9 +66,12 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						players: [], // Add the host as the first player in the room
 						host_ws: ws, // Store the host's WebSocket for later reference
 						quizId: quizId,
+						default_time_limit: 20, // Default value, will be updated when the game starts
 						state: 'lobby',
 						questions: [],
-						questionIndex: 0
+						questionIndex: 0,
+						players_answered: 0,
+						timeouts: []
 					};
 
 					ws.send(JSON.stringify({ type: 'game_created', gameId: gameId }));
@@ -103,6 +106,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 						ws.username = data.username;
 						ws.roomId = data.gameId;
+						ws.points = 0;
 
 						// Add player to the room if username is available
 						if(rooms[data.gameId].players.some(p => p.username === data.username)) {
@@ -155,7 +159,58 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					handleGameLogic(rooms[ws.roomId]); // Start the game logic
 					break;
 				case 'submit_answer':
-					console.log(`User ${ws.user?.id} answered:`, data.answer);
+					if (!ws.roomId || !rooms[ws.roomId]) return;
+
+					console.log(`Received answer from ${ws.username}:`, data);
+					const timeTaken = new Date().getTime() - (rooms[ws.roomId].question_time?.getTime() || 0);
+
+					rooms[ws.roomId].players_answered = (rooms[ws.roomId].players_answered || 0) + 1;
+
+					// Validate the answer
+					const currentQuestion = rooms[ws.roomId].questions[rooms[ws.roomId].questionIndex - 1];
+					const selectedAnswer = currentQuestion.answers?.find(a => a.id === data.answerId);
+
+					if (selectedAnswer && selectedAnswer.is_correct) {
+						// Simple scoring: More points for faster answers
+						const maxPoints = 1000;
+						const totalTimeMs = rooms[ws.roomId].default_time_limit * 1000;
+
+						// Calculate percentage of time remaining (0.0 to 1.0)
+						const timeFraction = Math.max(0, 1 - (timeTaken / totalTimeMs));
+
+						// Award points based on speed
+						const pointsEarned = Math.round(maxPoints * timeFraction);
+
+						ws.points = (ws.points || 0) + pointsEarned;
+						ws.aquiredPoints = pointsEarned;
+						ws.was_correct = true;
+					} else {
+						ws.was_correct = false;
+					}
+
+					if(rooms[ws.roomId].players_answered === rooms[ws.roomId].players.length) {
+						updatePlayerScores(rooms[ws.roomId]);
+					}
+					break;
+				case 'skip_question':
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can skip questions' }));
+						return;
+					}
+					updatePlayerScores(rooms[ws.roomId]);
+					break;
+				case 'next_question':
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can move to the next question' }));
+						return;
+					}
+					if(rooms[ws.roomId].questionIndex >= rooms[ws.roomId].questions.length) {
+						// No more questions, end the game
+						gameFinished(rooms[ws.roomId]);
+						return;
+					} else {
+						sendNextQuestion(rooms[ws.roomId]);
+					}
 					break;
 				default:
 					console.log('Unknown message type:', data.type);
@@ -176,7 +231,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 				sendToPlayers(rooms[ws.roomId], { type: 'game_ended', message: 'Host has left the game. The game has ended.' }, { excludeHost: true });
 			}
 			if(rooms[ws.roomId].state === 'in-game') {
-				rooms[ws.roomId].state = 'finished';
+				gameFinished(rooms[ws.roomId]);
 			} else {
 				delete rooms[ws.roomId];
 			}
@@ -198,6 +253,12 @@ console.log(`WebSocket server is running on ws://localhost:${PORT}`);
 const handleGameLogic = async (room: Room) => {
 	if(!room || room.state !== 'in-game') throw new Error('Invalid room state for game logic');
 
+	await loadQuestionsIntoMemory(room);
+
+	sendNextQuestion(room);
+}
+
+const loadQuestionsIntoMemory = async (room: Room) => {
 	try {
 		// Fetch questions using Kysely
 		const questions = await db
@@ -225,40 +286,109 @@ const handleGameLogic = async (room: Room) => {
 			...q,
 			answers: answers.filter((a: any) => a.question_id === q.id)
 		}));
+
+		const defaultTimeLimit = await db
+			.selectFrom('quizzes')
+			.select('default_time_limit')
+			.where('id', '=', room.quizId)
+			.executeTakeFirst();
+
+		room.default_time_limit = defaultTimeLimit?.default_time_limit || 20;
 	} catch (err) {
 		console.error('Error fetching questions and answers:', err);
 		return;
 	}
 
-	sendNextQuestion(room);
+	// sendToPlayers(room, { type: 'questions_loaded', totalQuestions: room.questions.length });
 }
 
 const sendNextQuestion = (room: Room) => {
 	const question = room.questions[room.questionIndex];
 	console.log(`Sending question ${room.questionIndex + 1}: ${question.question_text}`);
 	room.questionIndex++;
+
+	const strippedQuestion: any = {
+		question_text: question.question_text,
+		question_type: question.question_type,
+		question_index: room.questionIndex,
+		questions_length: room.questions.length,
+		time_limit: question.time_limit !== null ? question.time_limit : room.default_time_limit
+	};
+	const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
+	if (question.time_limit !== null) {
+		strippedQuestion.time_limit = question.time_limit;
+	}
+
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ type: 'next_question' }));
+	});
 
-		const strippedQuestion: any = {
-			question_text: question.question_text,
-			question_type: question.question_type
-		};
-		const strippedAnswers = question.answers?.map((a: any) => ({ id: a.id, answer_text: a.answer_text }));
-		if (question.time_limit !== null) {
-			strippedQuestion.time_limit = question.time_limit;
-		}
-		setTimeout(() => {
+	const t1 = setTimeout(() => {
+		executeForEachPlayer(room, (player) => {
 			player.send(JSON.stringify({ 
 				type: 'question',
 				question: strippedQuestion
 			}));
-		}, 3000);
-		setTimeout(() => {
+		});
+	}, 3000);
+
+	const t2 = setTimeout(() => {
+		if(!room.question_time) room.question_time = new Date(); // Mark the time when the question was sent for point calculation later
+		executeForEachPlayer(room, (player) => {
 			player.send(JSON.stringify({ 
 				type: 'answers',
 				answers: strippedAnswers
 			}));
-		}, 6000);
+		});
+	}, 6000);
+
+	const t3 = setTimeout(() => {
+		updatePlayerScores(room);
+	}, (question.time_limit !== null ? question.time_limit : room.default_time_limit) * 1000 + 6000);
+
+	room.timeouts.push(t1, t2, t3);
+}
+const updatePlayerScores = (room: Room) => {
+	if (room.timeouts) {
+		room.timeouts.forEach(clearTimeout);
+	}
+	room.timeouts = [];
+
+	room.host_ws?.send(JSON.stringify({
+		type: 'update_scores',
+		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
+	}));
+
+	executeForEachPlayer(room, (player) => {
+		player.send(JSON.stringify({ 
+			type: 'answer_result',
+			correct: player.was_correct || false,
+			points: player.aquiredPoints || 0
+		}));
+		player.aquiredPoints = 0;
+		player.was_correct = null;
+	}, { excludeHost: true });
+
+	room.players_answered = 0;
+	room.question_time = undefined;
+}
+
+const gameFinished = (room: Room) => {
+	if (room.timeouts) {
+		room.timeouts.forEach(clearTimeout);
+		room.timeouts = [];
+	}
+
+	room.state = 'finished';
+
+	const finalScores = room.players.map(p => ({ username: p.username, points: p.points }));
+	room.host_ws?.send(JSON.stringify({ type: 'game_finished', finalScores }));
+
+	room.players.forEach(player => {
+		player.send(JSON.stringify({ type: 'game_finished', placement: finalScores.findIndex(fs => fs.username === player.username) + 1, score: player.points }));
 	});
+
+	if (room.host_ws?.roomId) {
+		delete rooms[room.host_ws.roomId];
+	}
 }

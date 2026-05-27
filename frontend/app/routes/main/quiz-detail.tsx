@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { apiClient } from "../utils/api";
-import { Card } from "../components/Card";
-import { Button } from "../components/Button";
-import { Spinner } from "../components/Spinner";
+import { apiClient } from "~/utils/api";
+import { Card } from "~/components/Card";
+import { Button } from "~/components/Button";
+import { Spinner } from "~/components/Spinner";
 
 export default function QuizDetail() {
     const { id } = useParams();
@@ -20,7 +20,8 @@ export default function QuizDetail() {
                     throw new Error("Failed to fetch quiz details.");
                 }
                 const data = await res.json();
-                setQuiz(data); // Adjust depending on if Laravel wraps it in { data: ... }
+                console.log("Fetched quiz data:", data);
+                setQuiz(data);
             } catch (err: any) {
                 setError(err.message || "An error occurred.");
             } finally {
@@ -68,7 +69,7 @@ export default function QuizDetail() {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 flex gap-4">
-                    <Button onClick={() => navigate(`/game/host/${quiz.id}`)} variant="primary" size="lg">
+                    <Button onClick={() => navigate(`/game/host/${quiz.id}`)} variant="primary">
                         Host Game
                     </Button>
                 </div>

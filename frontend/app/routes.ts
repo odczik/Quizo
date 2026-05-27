@@ -7,17 +7,19 @@ export default [
         index("routes/main/home.tsx"),
         route("demo", "routes/main/demo.tsx"),
         route("browse", "routes/main/browse.tsx"),
-        route("browse/:id", "routes/quiz-detail.tsx"),
-
+        route("browse/:id", "routes/main/quiz-detail.tsx"),
+        
         // Auth routes
         layout("routes/layouts/no-auth-layout.tsx", [
             route("login", "routes/main/auth/login.tsx"),
             route("register", "routes/main/auth/register.tsx"),
         ]),
-
+        
         // Protected routes (require authentication)
         layout("routes/layouts/protected-layout.tsx", [
             route("profile", "routes/main/profile.tsx"),
+            route("quiz/create", "routes/main/quizCreation/create.tsx"),
+            route("profile/quizzes", "routes/main/my-quizzes.tsx"),
         ]),
     ]),
     
