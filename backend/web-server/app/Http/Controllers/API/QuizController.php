@@ -88,7 +88,7 @@ class QuizController extends Controller
 
         $request->validate([
             'question_text' => 'required|string|max:255',
-            'question_type' => 'sometimes|required|in:multiple_choice',
+            'question_type' => 'sometimes|required|between:0,1',
 
 
             // Inputs for answers table
@@ -99,7 +99,7 @@ class QuizController extends Controller
 
         $question = $quiz->questions()->create([
             'question_text' => $request->question_text,
-            'question_type' => $request->question_type,
+            'question_type' => $request->question_type ?? 0,
         ]);
 
         $question->answers()->createMany($request->answers);
@@ -109,17 +109,17 @@ class QuizController extends Controller
 
     public function updateQuizQuestion(Request $request, Quiz $quiz, Question $question)
     {
-        // Logic to update a quiz question
+        $this->authorize('manage', $quiz); // Returns 403 if unauthorized
     }
 
     public function deleteQuizQuestion(Quiz $quiz, Question $question)
     {
-        // Logic to delete a quiz question
+        $this->authorize('manage', $quiz); // Returns 403 if unauthorized
     }
 
     public function likeQuiz(Quiz $quiz)
     {
-        // Logic to like a quiz
+        $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
     }
 
     public function discoverQuizzes(Request $request)
@@ -134,7 +134,6 @@ class QuizController extends Controller
                 $query->join('quiz_likes', 'quizzes.id', '=', 'quiz_likes.quiz_id')
                       ->where('quiz_likes.user_id', Auth::id());
             } else {
-                // If they are not authenticated, they can't have any liked quizzes
                 return response()->json([]);
             }
         }

@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "backend": "cd backend/web-server && php artisan serve",
+    "websocket": "cd backend/websocket-server && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run backend\" \"npm run websocket\" \"npm run frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
