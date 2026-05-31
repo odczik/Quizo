@@ -122,6 +122,27 @@ export default function CreateQuiz() {
         setSaveSuccess(true);
     };
 
+    /*const addQuiztoDatabase = async () => {
+        try {
+            const response = await fetch("/api/quizzes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ title: quizTitle, questions }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to save quiz");
+            }
+
+            const result = await response.json();
+            console.log("Quiz saved:", result);
+        } catch (error) {
+            console.error("Error saving quiz:", error);
+        }
+    };*/
+
     return (
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
             <div className="w-full max-w-4xl p-6 bg-white rounded-3xl shadow-lg border border-gray-200">
@@ -247,6 +268,7 @@ export default function CreateQuiz() {
                         </div>
 
                         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                            <Button onClick={() => navigate('/')}>Back to Browse</Button>
                             <Button
                                 variant="primary"
                                 disabled={isSubmitDisabled}
@@ -254,7 +276,6 @@ export default function CreateQuiz() {
                             >
                                 Save Quiz
                             </Button>
-                            <Button onClick={() => navigate('/')}>Back to Browse</Button>
                         </div>
                     </>
                 )}
