@@ -24,14 +24,14 @@ This document outlines the standard RESTful API routes and WebSocket events used
 
 | Method | URI | Description | Returns | Errors |
 |---|---|---|---|---|
-| `GET` | `/api/quizzes` | List all quizzes created by the authenticated user. | `200 OK`: Array of Quiz objects. | `401 Unauthorized`: Unauthenticated. |
+| `GET` | `/api/quizzes` | List all quizzes created and liked by the authenticated user. | `200 OK`: Array of created and liked objects. | `401 Unauthorized`: Unauthenticated. |
 | `POST` | `/api/quizzes` | Create a new quiz. | `201 Created`: The new Quiz object. | `401 Unauthorized`<br>`422 Unprocessable Entity` |
 | `GET` | `/api/quizzes/{id}` | Get full details of a specific quiz (including questions/answers). | `200 OK`: Quiz object with relationships. | `404 Not Found`<br>`403 Forbidden` (if private) |
 | `PUT` | `/api/quizzes/{id}` | Update quiz metadata (title, description, settings). | `200 OK`: Updated Quiz object. | `401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
 | `DELETE`| `/api/quizzes/{id}` | Delete a quiz and all its related questions/answers. | `200 OK`: Success message. | `401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
 | `POST` | `/api/quizzes/{id}/questions` | Add a new question to a quiz. | `201 Created`: The new Question object. | `401 Unauthorized`<br>`403 Forbidden`<br>`422 Unprocessable Entity` |
-| `PUT` | `/api/questions/{id}` | Update a question and its answers. | `200 OK`: Updated Question object. | `401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
-| `DELETE`| `/api/questions/{id}` | Delete a specific question from a quiz. | `200 OK`: Success message. | `401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
+| `PUT` | `/api/quizzes/{id}/questions/{id}` | Update a question and its answers. | `200 OK`: Updated Question object. | `401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
+| `DELETE`| `/api/quizzes/{id}/questions/{id}` | Delete a specific question from a quiz. | `200 OK`: Success message. | `401 Unauthorized`<br>`403 Forbidden`<br>`404 Not Found` |
 | `POST` | `/api/quizzes/{id}/like` | Toggle like status for a quiz (Like/Unlike). | `200 OK`: New like status and total count. | `401 Unauthorized`<br>`404 Not Found` |
 | `GET` | `/api/discover` | Get a list of public quizzes for the discovery page. | `200 OK`: Array of public Quiz objects. | N/A |
 

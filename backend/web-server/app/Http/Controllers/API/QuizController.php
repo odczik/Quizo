@@ -10,16 +10,16 @@ use App\Models\Question;
 
 class QuizController extends Controller
 {
-    // TODO toto je taky blbe
     public function listQuizzes()
     {
         // Logic to list quizzes
 
-        $quizzes = Quiz::all();
-        foreach ($quizzes as $quiz) {
-            $this->authorize('get', $quiz);
-        }
-        return response()->json($quizzes);
+        $quizzesCreated = Auth::check() ? Quiz::where('created_by', Auth::id())->get() : collect();
+        $quizzesLiked = Auth::check() ? Quiz::whereHas('likes', fn($q) => $q->where('user_id', Auth::id()))->get() : collect();
+        return response()->json([
+            'created' => $quizzesCreated,
+            'liked' => $quizzesLiked
+        ]);
     }
 
     public function createQuiz(Request $request)
@@ -38,7 +38,7 @@ class QuizController extends Controller
         $quiz = Quiz::create([
             'title' => $request->title,
             'description' => $request->description,
-            'created_by' => Auth::id() ?? 0,
+            'created_by' => Auth::id(),
             'is_public' => $request->is_public ?? false,
             'default_time_limit' => $request->default_time_limit ?? 20,
         ]);
@@ -46,7 +46,6 @@ class QuizController extends Controller
         return response()->json($quiz, 201);
     }
 
-    // TODO tohle se musí upravit, protože to má vracet i otázky a odpovědi, ale prozatím to vrací jen quiz bez otázek
     public function getQuizDetails(Quiz $quiz)
     {
         $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
@@ -110,16 +109,46 @@ class QuizController extends Controller
     public function updateQuizQuestion(Request $request, Quiz $quiz, Question $question)
     {
         $this->authorize('manage', $quiz); // Returns 403 if unauthorized
+
+        $request->validate([
+            'question_text' => 'required|string|max:255',
+            'question_type' => 'sometimes|required|between:0,1',
+
+
+            // Inputs for answers table
+            'answers' => 'required|array',
+            'answers.*.text' => 'required|string|max:255',
+            'answers.*.is_correct' => 'required|boolean',
+        ]);
+
+        $question->update([
+            'question_text' => $request->question_text,
+            'question_type' => $request->question_type ?? 0,
+        ]);
+
+        // Delete existing answers and create new ones
+        $question->answers()->delete();
+        $question->answers()->createMany($request->answers);
+
+        return response()->json($question);
     }
 
     public function deleteQuizQuestion(Quiz $quiz, Question $question)
     {
         $this->authorize('manage', $quiz); // Returns 403 if unauthorized
+
+        $question->delete();
+
+        return response()->json(['message' => 'Question deleted successfully']);
     }
 
     public function likeQuiz(Quiz $quiz)
     {
         $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
+
+        
+        
+        return response()->json(['message' => 'Quiz liked successfully']);
     }
 
     public function discoverQuizzes(Request $request)
