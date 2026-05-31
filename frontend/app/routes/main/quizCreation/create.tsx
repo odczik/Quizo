@@ -119,10 +119,11 @@ export default function CreateQuiz() {
     const handleSaveQuiz = () => {
         console.log("Quiz title:", quizTitle, "questions:", questions);
         resetForm();
-        setSaveSuccess(true);
+        addQuizToDatabase();
+        
     };
 
-    /*const addQuiztoDatabase = async () => {
+    const addQuizToDatabase = async () => {
         try {
             const response = await fetch("/api/quizzes", {
                 method: "POST",
@@ -138,10 +139,11 @@ export default function CreateQuiz() {
 
             const result = await response.json();
             console.log("Quiz saved:", result);
+            setSaveSuccess(true);
         } catch (error) {
             console.error("Error saving quiz:", error);
         }
-    };*/
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
