@@ -2,11 +2,9 @@ import { Button } from "~/components/Button";
 import { Modal } from "~/components/Modal";
 import { ToggleSwitch } from "~/components/ToggleSwitch";
 import { useState } from "react";
-import { useAuth } from "~/context/AuthenticationContext";
 import { useNavigate } from "react-router";
 
 export default function CreateQuiz() {
-    const { user, isLoading } = useAuth();
     const navigate = useNavigate();
     const [quizTitle, setQuizTitle] = useState("");
     const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
@@ -23,32 +21,6 @@ export default function CreateQuiz() {
     });
 
     const [questions, setQuestions] = useState([createEmptyQuestion()]);
-
-    if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-                <h1 className="text-4xl font-bold mb-6">Checking your login status…</h1>
-                <p className="text-gray-600">Please wait while we verify whether you are signed in.</p>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-                <h1 className="text-4xl font-bold mb-6 text-red-600">Please log in or return to the browsing page</h1>
-                <p className="text-gray-600 max-w-xl">
-                    Only logged-in users can create a quiz. Please sign in first, then return to the create page.
-                </p>
-                <div className="mt-6 flex flex-col sm:flex-row gap-4">
-                    <Button variant="primary" onClick={() => navigate('/login')}>
-                        Go to Login
-                    </Button>
-                    <Button onClick={() => navigate('/')}>Back to Browsing page</Button>
-                </div>
-            </div>
-        );
-    }
 
     const isSubmitDisabled =
         !quizTitle.trim() ||
@@ -147,7 +119,30 @@ export default function CreateQuiz() {
     const handleSaveQuiz = () => {
         console.log("Quiz title:", quizTitle, "questions:", questions);
         resetForm();
-        setSaveSuccess(true);
+        addQuizToDatabase();
+        
+    };
+
+    const addQuizToDatabase = async () => {
+        try {
+            const response = await fetch("/api/quizzes", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ title: quizTitle, questions }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to save quiz");
+            }
+
+            const result = await response.json();
+            console.log("Quiz saved:", result);
+            setSaveSuccess(true);
+        } catch (error) {
+            console.error("Error saving quiz:", error);
+        }
     };
 
     return (
@@ -275,6 +270,7 @@ export default function CreateQuiz() {
                         </div>
 
                         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                            <Button onClick={() => navigate('/')}>Back to Browse</Button>
                             <Button
                                 variant="primary"
                                 disabled={isSubmitDisabled}
@@ -282,7 +278,6 @@ export default function CreateQuiz() {
                             >
                                 Save Quiz
                             </Button>
-                            <Button onClick={() => navigate('/')}>Back to Browse</Button>
                         </div>
                     </>
                 )}
