@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['title', 'description', 'is_public', 'default_time_limit'])]
+#[Fillable(['title', 'description', 'is_public', 'default_time_limit', 'image', 'created_by'])]
 class Quiz extends Model
 {
     /**
@@ -19,5 +19,10 @@ class Quiz extends Model
             'is_public' => 'boolean',
             'default_time_limit' => 'integer'
         ];
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
     }
 }

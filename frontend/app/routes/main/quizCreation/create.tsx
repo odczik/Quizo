@@ -7,51 +7,71 @@ import { useNavigate } from "react-router";
 export default function CreateQuiz() {
     const navigate = useNavigate();
     const [quizTitle, setQuizTitle] = useState("");
+    const [quizImage, setQuizImage] = useState<string | null>(null);
     const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
-    const createEmptyQuestion = () => ({
+    const createEmptyQuestion = (type: "multiple_choice" | "fill_in_blank" = "multiple_choice") => ({
         questionTitle: "",
-        answerOptions: [
-            { text: "", correct: false },
-            { text: "", correct: false },
-            { text: "", correct: false },
-            { text: "", correct: false },
-        ],
+        type,
+        answerOptions:
+            type === "multiple_choice"
+                ? [
+                      { text: "", correct: false },
+                      { text: "", correct: false },
+                      { text: "", correct: false },
+                      { text: "", correct: false },
+                  ]
+                : [{ text: "", correct: true }],
     });
 
     const [questions, setQuestions] = useState([createEmptyQuestion()]);
 
     const isSubmitDisabled =
         !quizTitle.trim() ||
-        questions.some(
-            (question) =>
-                !question.questionTitle.trim() ||
+        questions.some((question) => {
+            if (!question.questionTitle.trim()) return true;
+            if (question.type === "fill_in_blank") {
+                return !question.answerOptions[0]?.text.trim();
+            }
+            return (
                 question.answerOptions.some((option) => !option.text.trim()) ||
                 !question.answerOptions.some((option) => option.correct)
-        );
+            );
+        });
 
     const hasCorrectAnswer = (questionIndex: number) =>
         questions[questionIndex].answerOptions.some((option) => option.correct);
 
     const addQuestion = () => {
-        setQuestions((prev) => [
-            ...prev,
-            {
-                questionTitle: "",
-                answerOptions: [
-                    { text: "", correct: false },
-                    { text: "", correct: false },
-                    { text: "", correct: false },
-                    { text: "", correct: false },
-                ],
-            },
-        ]);
+        setQuestions((prev) => [...prev, createEmptyQuestion("multiple_choice")]);
     };
 
     const updateQuestionTitle = (index: number, value: string) => {
         setQuestions((prev) =>
             prev.map((question, i) => (i === index ? { ...question, questionTitle: value } : question))
+        );
+    };
+
+    const updateQuestionType = (index: number, newType: "multiple_choice" | "fill_in_blank") => {
+        setQuestions((prev) =>
+            prev.map((question, i) => {
+                if (i !== index) return question;
+                if (question.type === newType) return question;
+                return {
+                    ...question,
+                    type: newType,
+                    answerOptions:
+                        newType === "multiple_choice"
+                            ? [
+                                  { text: "", correct: false },
+                                  { text: "", correct: false },
+                                  { text: "", correct: false },
+                                  { text: "", correct: false },
+                              ]
+                            : [{ text: "", correct: true }],
+                };
+            })
         );
     };
 
@@ -110,8 +130,20 @@ export default function CreateQuiz() {
         setQuestions((prev) => prev.filter((_, index) => index !== indexToRemove));
     };
 
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setQuizImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const resetForm = () => {
         setQuizTitle("");
+        setQuizImage(null);
         setQuestions([createEmptyQuestion()]);
         setQuestionToDelete(null);
     };
@@ -130,7 +162,7 @@ export default function CreateQuiz() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ title: quizTitle, questions }),
+                body: JSON.stringify({ title: quizTitle, questions, image: quizImage }),
             });
 
             if (!response.ok) {
@@ -164,6 +196,34 @@ export default function CreateQuiz() {
                             placeholder="Enter the quiz title"
                             className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                         />
+
+                        <div className="mt-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Quiz Image</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            <p className="mt-2 text-sm text-gray-500">This image will be displayed when browsing quizzes</p>
+                        </div>
+
+                        {quizImage && (
+                            <div className="mt-6">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Image Preview</label>
+                                <img
+                                    src={quizImage}
+                                    alt="Quiz preview"
+                                    className="w-full max-w-sm h-auto rounded-2xl border border-gray-300 object-cover"
+                                />
+                                <button
+                                    onClick={() => setQuizImage(null)}
+                                    className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
+                                >
+                                    Remove image
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -197,54 +257,86 @@ export default function CreateQuiz() {
                                 className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                             />
 
-                            <div className="mt-6 flex items-center justify-between gap-4">
-                                <span className="text-sm font-semibold text-gray-700">Answer options</span>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        onClick={() => removeAnswerOption(questionIndex)}
-                                        disabled={question.answerOptions.length <= 1}
-                                    >
-                                        -
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        onClick={() => addAnswerOption(questionIndex)}
-                                        disabled={question.answerOptions.length >= 4}
-                                    >
-                                        +
-                                    </Button>
-                                </div>
+                            <div className="mt-6 mb-6">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Question Type</label>
+                                <select
+                                    value={question.type}
+                                    onChange={(event) => updateQuestionType(questionIndex, event.target.value as "multiple_choice" | "fill_in_blank")}
+                                    className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                                >
+                                    <option value="multiple_choice">Multiple Choice (4 answers)</option>
+                                    <option value="fill_in_blank">Fill in the Blank</option>
+                                </select>
                             </div>
 
-                            <div className="mt-4 space-y-4">
-                                {question.answerOptions.map((option, index) => (
-                                    <div key={index} className="flex flex-col gap-3 rounded-3xl border border-gray-200 bg-white p-4">
-                                        <div className="flex flex-col gap-3">
-                                            <ToggleSwitch
-                                                checked={option.correct}
-                                                onChange={(checked) => toggleCorrectAnswer(questionIndex, index, checked)}
-                                                label={`Answer option ${index + 1}`}
-                                                description="Mark this answer as correct"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={option.text}
-                                                onChange={(event) => updateAnswerOption(questionIndex, index, event.target.value)}
-                                                placeholder={`Answer option ${index + 1}`}
-                                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                            />
+                            {question.type === "multiple_choice" && (
+                                <>
+                                    <div className="mt-6 flex items-center justify-between gap-4">
+                                        <span className="text-sm font-semibold text-gray-700">Answer options</span>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                onClick={() => removeAnswerOption(questionIndex)}
+                                                disabled={question.answerOptions.length <= 1}
+                                            >
+                                                -
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                onClick={() => addAnswerOption(questionIndex)}
+                                                disabled={question.answerOptions.length >= 4}
+                                            >
+                                                +
+                                            </Button>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
 
-                            {!hasCorrectAnswer(questionIndex) && (
-                                <p className="mt-3 text-sm text-red-600">
-                                    Each question needs at least one correct answer.
-                                </p>
+                                    <div className="mt-4 space-y-4">
+                                        {question.answerOptions.map((option, index) => (
+                                            <div key={index} className="flex flex-col gap-3 rounded-3xl border border-gray-200 bg-white p-4">
+                                                <div className="flex flex-col gap-3">
+                                                    <ToggleSwitch
+                                                        checked={option.correct}
+                                                        onChange={(checked) => toggleCorrectAnswer(questionIndex, index, checked)}
+                                                        label={`Answer option ${index + 1}`}
+                                                        description="Mark this answer as correct"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={option.text}
+                                                        onChange={(event) => updateAnswerOption(questionIndex, index, event.target.value)}
+                                                        placeholder={`Answer option ${index + 1}`}
+                                                        className="w-full rounded-2xl border border-gray-300 px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {!hasCorrectAnswer(questionIndex) && (
+                                        <p className="mt-3 text-sm text-red-600">
+                                            Each question needs at least one correct answer.
+                                        </p>
+                                    )}
+                                </>
+                            )}
+
+                            {question.type === "fill_in_blank" && (
+                                <>
+                                    <div className="mt-6">
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Correct Answer</label>
+                                        <input
+                                            type="text"
+                                            value={question.answerOptions[0]?.text || ""}
+                                            onChange={(event) => updateAnswerOption(questionIndex, 0, event.target.value)}
+                                            placeholder="Enter the correct answer"
+                                            className="w-full rounded-2xl border border-gray-300 px-4 py-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                                        />
+                                        <p className="mt-2 text-sm text-gray-500">Players will type their answer, which will be compared with this exact text.</p>
+                                    </div>
+                                </>
                             )}
 
                             <div className="mt-4 text-right">
