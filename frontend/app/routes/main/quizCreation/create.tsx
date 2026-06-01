@@ -10,6 +10,7 @@ export default function CreateQuiz() {
     const [quizImage, setQuizImage] = useState<string | null>(null);
     const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const createEmptyQuestion = (type: "multiple_choice" | "fill_in_blank" = "multiple_choice") => ({
         questionTitle: "",
@@ -150,12 +151,11 @@ export default function CreateQuiz() {
 
     const handleSaveQuiz = () => {
         console.log("Quiz title:", quizTitle, "questions:", questions);
-        resetForm();
         addQuizToDatabase();
-        
     };
 
     const addQuizToDatabase = async () => {
+        setIsSaving(true);
         try {
             const response = await fetch("/api/quizzes", {
                 method: "POST",
@@ -166,14 +166,21 @@ export default function CreateQuiz() {
             });
 
             if (!response.ok) {
+                const text = await response.text().catch(() => null);
+                console.error('Save failed response:', response.status, text);
                 throw new Error("Failed to save quiz");
             }
 
             const result = await response.json();
             console.log("Quiz saved:", result);
             setSaveSuccess(true);
+            // only reset after successful save
+            resetForm();
         } catch (error) {
             console.error("Error saving quiz:", error);
+            // preserve current state so maker doesn't lose work
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -365,10 +372,10 @@ export default function CreateQuiz() {
                             <Button onClick={() => navigate('/')}>Back to Browse</Button>
                             <Button
                                 variant="primary"
-                                disabled={isSubmitDisabled}
+                                disabled={isSubmitDisabled || isSaving}
                                 onClick={handleSaveQuiz}
                             >
-                                Save Quiz
+                                {isSaving ? 'Saving...' : 'Save Quiz'}
                             </Button>
                         </div>
                     </>
