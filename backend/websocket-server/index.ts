@@ -384,6 +384,7 @@ const gameFinished = (room: Room) => {
 	const finalScores = room.players.map(p => ({ username: p.username, points: p.points }));
 	room.host_ws?.send(JSON.stringify({ type: 'game_finished', finalScores }));
 
+	finalScores.sort((a, b) => (b.points ?? 0) - (a.points ?? 0)); // Sort descending by points
 	room.players.forEach(player => {
 		player.send(JSON.stringify({ type: 'game_finished', placement: finalScores.findIndex(fs => fs.username === player.username) + 1, score: player.points }));
 	});
