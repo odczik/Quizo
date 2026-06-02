@@ -113,7 +113,7 @@ export default function Browse() {
                 <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
                     {user && (
                         <Button 
-                            variant={likedOnly ? "primary" : ""} 
+                            variant={likedOnly ? "primary" : undefined} 
                             onClick={() => {
                                 if (!user) {
                                     navigate("/login");
