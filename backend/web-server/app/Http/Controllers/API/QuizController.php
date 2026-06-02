@@ -89,9 +89,13 @@ class QuizController extends Controller
     public function getQuizDetails(Quiz $quiz)
     {
         $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
-        Question::where('quiz_id', $quiz->id)->get()->each(function ($question) {
-            $question->answers = $question->answers()->get();
-        });
+        $quiz->load('questions.answers');
+
+        $quiz->setAttribute(
+            'liked_by_user',
+            Auth::check() ? $quiz->likes()->where('user_id', Auth::id())->exists() : false
+        );
+
         return response()->json($quiz);
     }
 
@@ -186,9 +190,28 @@ class QuizController extends Controller
     {
         $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
 
-        
-        
-        return response()->json(['message' => 'Quiz liked successfully']);
+        $userId = Auth::id();
+
+        if (!$quiz->likes()->where('user_id', $userId)->exists()) {
+            $quiz->likes()->attach($userId, ['liked_at' => now()]);
+        }
+
+        return response()->json([
+            'message' => 'Quiz liked successfully',
+            'liked_by_user' => true,
+        ]);
+    }
+
+    public function unlikeQuiz(Quiz $quiz)
+    {
+        $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
+
+        $quiz->likes()->detach(Auth::id());
+
+        return response()->json([
+            'message' => 'Quiz unliked successfully',
+            'liked_by_user' => false,
+        ]);
     }
 
     public function discoverQuizzes(Request $request)

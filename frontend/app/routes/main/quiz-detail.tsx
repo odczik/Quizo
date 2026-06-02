@@ -9,12 +9,14 @@ import { useAuth } from "~/context/AuthenticationContext";
 export default function QuizDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
 
     const [quiz, setQuiz] = useState<any>(null);
     const [isLiked, setIsLiked] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    
 
     useEffect(() => {
         const fetchQuiz = async () => {
@@ -26,6 +28,7 @@ export default function QuizDetail() {
                 const data = await res.json();
                 console.log("Fetched quiz data:", data);
                 setQuiz(data);
+                setIsLiked(data.liked_by_user || false);
             } catch (err: any) {
                 setError(err.message || "An error occurred.");
             } finally {
@@ -56,6 +59,27 @@ export default function QuizDetail() {
         );
     }
 
+    const handleLikeToggle = async () => {
+        try {
+            const res = await apiClient(`/api/quizzes/${id}/like`, {
+                method: isLiked ? "DELETE" : "POST",
+            });
+            if (!res.ok) {
+                throw new Error("Failed to update like status.");
+            }
+
+            const data = await res.json().catch(() => null);
+            const nextLiked = typeof data?.liked_by_user === "boolean" ? data.liked_by_user : !isLiked;
+
+            setIsLiked(nextLiked);
+            setQuiz((currentQuiz: any) =>
+                currentQuiz ? { ...currentQuiz, liked_by_user: nextLiked } : currentQuiz
+            );
+        } catch (err: any) {
+            alert(err.message || "An error occurred while updating like status.");
+        }
+    }
+
     return (
         <div className="max-w-4xl mx-auto p-4">
             <Button variant="secondary" onClick={() => navigate(-1)} className="mb-4">
@@ -83,7 +107,7 @@ export default function QuizDetail() {
                                 if (!user) {
                                     navigate("/login");
                                 } else {
-                                    setIsLiked(!isLiked);
+                                    handleLikeToggle();
                                 }
                             }}
                             className="p-2 border border-gray-300 shadow-sm disabled:opacity-50"
