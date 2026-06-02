@@ -3,6 +3,7 @@ import { Modal } from "~/components/Modal";
 import { ToggleSwitch } from "~/components/ToggleSwitch";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { apiClient } from "~/utils/api";
 
 export default function CreateQuiz() {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function CreateQuiz() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isPublic, setIsPublic] = useState(true);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     const createEmptyQuestion = (type: "multiple_choice" | "fill_in_blank" = "multiple_choice") => ({
         questionTitle: "",
@@ -166,31 +168,63 @@ export default function CreateQuiz() {
         addQuizToDatabase();
     };
 
+    const dataURLToBlob = (dataURL: string) => {
+        const [meta, base64] = dataURL.split(',');
+        const mime = meta.match(/:(.*?);/)?.[1] || 'image/png';
+        const binary = atob(base64);
+        const array = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+        return new Blob([array], { type: mime });
+    };
+
     const addQuizToDatabase = async () => {
         setIsSaving(true);
+        setSaveError(null);
         try {
-            const response = await fetch("/api/quizzes", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ title: quizTitle, questions, image: quizImage, is_public: isPublic }),
-            });
+            let response: Response;
 
-            if (!response.ok) {
-                const text = await response.text().catch(() => null);
-                console.error('Save failed response:', response.status, text);
-                throw new Error("Failed to save quiz");
+            // If we have a data URL image, send as multipart/form-data (file upload)
+            if (quizImage && quizImage.startsWith("data:")) {
+                const form = new FormData();
+                form.append("title", quizTitle);
+                form.append("questions", JSON.stringify(questions));
+                // Send as 1 or 0 for boolean in form data
+                form.append("is_public", isPublic ? "1" : "0");
+                const blob = dataURLToBlob(quizImage);
+                form.append("image", blob, "quiz-image.png");
+
+                response = await fetch("/api/quizzes", {
+                    method: "POST",
+                    body: form,
+                });
+            } else {
+                // No image or already a URL - send JSON
+                response = await apiClient("/api/quizzes", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ title: quizTitle, questions, image: quizImage, is_public: isPublic }),
+                });
             }
 
-            const result = await response.json();
-            console.log("Quiz saved:", result);
+            const contentType = response.headers.get("content-type") || "";
+            const body = contentType.includes("application/json")
+                ? await response.json().catch(() => null)
+                : await response.text().catch(() => null);
+
+            if (!response.ok) {
+                console.error("Save failed response:", response.status, body);
+                setSaveError(body?.message || `Failed to save quiz (status ${response.status})`);
+                return;
+            }
+
+            console.log("Quiz saved:", body);
             setSaveSuccess(true);
-            // only reset after successful save
             resetForm();
         } catch (error) {
             console.error("Error saving quiz:", error);
-            // preserve current state so maker doesn't lose work
+            setSaveError(error instanceof Error ? error.message : "An unexpected error occurred");
         } finally {
             setIsSaving(false);
         }
