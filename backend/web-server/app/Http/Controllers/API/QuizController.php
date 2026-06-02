@@ -24,24 +24,64 @@ class QuizController extends Controller
 
     public function createQuiz(Request $request)
     {
-        // Logic to create a new quiz
+        // Require authenticated user to create quizzes
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Authentication required to create a quiz.'], 401);
+        }
 
         $request->validate([
             'title' => 'required|max:255',
             'description' => 'nullable|string',
             'is_public' => 'nullable|boolean',
             'default_time_limit' => 'nullable|integer|min:0',
+            'image' => 'nullable|string',
+
+            // Optional questions payload
+            'questions' => 'sometimes|array',
+            'questions.*.questionTitle' => 'required_with:questions|string|max:65535',
+            'questions.*.type' => 'required_with:questions|string|in:multiple_choice,fill_in_blank',
+            'questions.*.answerOptions' => 'required_with:questions|array',
+            'questions.*.answerOptions.*.text' => 'required_with:questions|string|max:65535',
+            'questions.*.answerOptions.*.correct' => 'required_with:questions|boolean',
         ]);
 
         // Create the quiz using the validated data
-
         $quiz = Quiz::create([
             'title' => $request->title,
             'description' => $request->description,
             'created_by' => Auth::id(),
             'is_public' => $request->is_public ?? false,
             'default_time_limit' => $request->default_time_limit ?? 20,
+            'image' => $request->image ?? null,
         ]);
+
+        // If questions were provided, create them along with their answers
+        if ($request->has('questions') && is_array($request->questions)) {
+            foreach ($request->questions as $idx => $q) {
+                $question = $quiz->questions()->create([
+                    'question_text' => $q['questionTitle'] ?? '',
+                    'question_type' => $q['type'] ?? 'multiple_choice',
+                    'order_index' => $idx,
+                ]);
+
+                // Prepare answers for DB: answers table expects answer_text and is_correct
+                $answersToCreate = [];
+                if (!empty($q['answerOptions']) && is_array($q['answerOptions'])) {
+                    foreach ($q['answerOptions'] as $ans) {
+                        $answersToCreate[] = [
+                            'answer_text' => $ans['text'] ?? '',
+                            'is_correct' => $ans['correct'] ?? false,
+                        ];
+                    }
+                }
+
+                if (!empty($answersToCreate)) {
+                    $question->answers()->createMany($answersToCreate);
+                }
+            }
+        }
+
+        $quiz->load('questions.answers');
 
         return response()->json($quiz, 201);
     }
@@ -49,9 +89,13 @@ class QuizController extends Controller
     public function getQuizDetails(Quiz $quiz)
     {
         $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
-        Question::where('quiz_id', $quiz->id)->get()->each(function ($question) {
-            $question->answers = $question->answers()->get();
-        });
+        $quiz->load('questions.answers');
+
+        $quiz->setAttribute(
+            'liked_by_user',
+            Auth::check() ? $quiz->likes()->where('user_id', Auth::id())->exists() : false
+        );
+
         return response()->json($quiz);
     }
 
@@ -87,7 +131,7 @@ class QuizController extends Controller
 
         $request->validate([
             'question_text' => 'required|string|max:255',
-            'question_type' => 'sometimes|required|between:0,1',
+            'question_type' => 'sometimes|required|string|in:multiple_choice,true_false,fill_in_blank',
 
 
             // Inputs for answers table
@@ -112,7 +156,7 @@ class QuizController extends Controller
 
         $request->validate([
             'question_text' => 'required|string|max:255',
-            'question_type' => 'sometimes|required|between:0,1',
+            'question_type' => 'sometimes|required|string|in:multiple_choice,true_false,fill_in_blank',
 
 
             // Inputs for answers table
@@ -146,9 +190,28 @@ class QuizController extends Controller
     {
         $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
 
-        
-        
-        return response()->json(['message' => 'Quiz liked successfully']);
+        $userId = Auth::id();
+
+        if (!$quiz->likes()->where('user_id', $userId)->exists()) {
+            $quiz->likes()->attach($userId, ['liked_at' => now()]);
+        }
+
+        return response()->json([
+            'message' => 'Quiz liked successfully',
+            'liked_by_user' => true,
+        ]);
+    }
+
+    public function unlikeQuiz(Quiz $quiz)
+    {
+        $this->authorize('get', $quiz); // Returns 403 if quiz is not public and user is not creator
+
+        $quiz->likes()->detach(Auth::id());
+
+        return response()->json([
+            'message' => 'Quiz unliked successfully',
+            'liked_by_user' => false,
+        ]);
     }
 
     public function discoverQuizzes(Request $request)

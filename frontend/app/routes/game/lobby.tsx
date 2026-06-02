@@ -29,7 +29,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
         if (isConnected) {
             if (user) {
                 // TODO: fetch jwt token from backend and send authenticate message to websocket server
-                sendMessage("authenticate", { token: "" });
+                //sendMessage("authenticate", { token: "" });
             }
 
             if (isHost) {

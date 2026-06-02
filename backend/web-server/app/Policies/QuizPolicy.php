@@ -13,9 +13,9 @@ class QuizPolicy
     /**
      * Determine whether the user can get the quiz (is public or is creator).
      */
-    public function get(User $user, Quiz $quiz): bool
+    public function get(?User $user, Quiz $quiz): bool
     {
-        return $quiz->is_public || ($user->id === $quiz->created_by);
+        return $quiz->is_public || ($user !== null && $user->id === $quiz->created_by);
     }
 
     /**
