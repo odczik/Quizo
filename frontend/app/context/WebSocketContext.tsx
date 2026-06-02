@@ -21,7 +21,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Connect to your Node.js websocket server
-        const ws = new WebSocket('ws://localhost:8080');
+        const ws = new WebSocket('ws://localhost:5000');
 
         ws.onopen = () => {
             console.log('Connected to Game Server');
@@ -41,7 +41,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             setTimeout(() => {
                 if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED) {
                     console.log('Attempting to reconnect to Game Server...');
-                    socketRef.current = new WebSocket('ws://localhost:8080');
+                    socketRef.current = new WebSocket('ws://localhost:5000');
                 }
             }, 1000);
         };
