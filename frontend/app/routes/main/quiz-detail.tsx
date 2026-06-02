@@ -67,14 +67,7 @@ export default function QuizDetail() {
             if (!res.ok) {
                 throw new Error("Failed to update like status.");
             }
-
-            const data = await res.json().catch(() => null);
-            const nextLiked = typeof data?.liked_by_user === "boolean" ? data.liked_by_user : !isLiked;
-
-            setIsLiked(nextLiked);
-            setQuiz((currentQuiz: any) =>
-                currentQuiz ? { ...currentQuiz, liked_by_user: nextLiked } : currentQuiz
-            );
+            setIsLiked(!isLiked);
         } catch (err: any) {
             alert(err.message || "An error occurred while updating like status.");
         }
