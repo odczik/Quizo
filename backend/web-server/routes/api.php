@@ -20,18 +20,19 @@ Route::middleware('web')->group(function () {
 
 // Quiz Management API routes
 Route::get('quizzes', [QuizController::class, 'listQuizzes']);
-Route::post('quizzes', [QuizController::class, 'createQuiz']);
 Route::get('quizzes/{quiz}', [QuizController::class, 'getQuizDetails']);
-Route::put('quizzes/{quiz}', [QuizController::class, 'updateQuiz']);
-Route::delete('quizzes/{quiz}', [QuizController::class, 'deleteQuiz']);
+Route::get('discover', [QuizController::class, 'discoverQuizzes']);
 
-// Quiz Question Management API routes
-Route::post('quizzes/{quiz}/questions', [QuizController::class, 'addQuizQuestion']);
-Route::put('quizzes/{quiz}/questions/{question}', [QuizController::class, 'updateQuizQuestion']);
-Route::delete('quizzes/{quiz}/questions/{question}', [QuizController::class, 'deleteQuizQuestion']);
+Route::middleware(['web','auth:sanctum'])->group(function () {
+    Route::post('quizzes', [QuizController::class, 'createQuiz']);
+    Route::put('quizzes/{quiz}', [QuizController::class, 'updateQuiz']);
+    Route::delete('quizzes/{quiz}', [QuizController::class, 'deleteQuiz']);
 
-// Quiz Like API route
-Route::post('quizzes/{quiz}/like', [QuizController::class, 'likeQuiz']);
+    // Quiz Question Management API routes
+    Route::post('quizzes/{quiz}/questions', [QuizController::class, 'addQuizQuestion']);
+    Route::put('quizzes/{quiz}/questions/{question}', [QuizController::class, 'updateQuizQuestion']);
+    Route::delete('quizzes/{quiz}/questions/{question}', [QuizController::class, 'deleteQuizQuestion']);
 
-// Discovery Page API route
-Route::GET('discover', [QuizController::class, 'discoverQuizzes']);
+    // Quiz Like API route
+    Route::post('quizzes/{quiz}/like', [QuizController::class, 'likeQuiz']);
+});

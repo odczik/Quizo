@@ -11,10 +11,12 @@ export default function CreateQuiz() {
     const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isPublic, setIsPublic] = useState(true);
 
     const createEmptyQuestion = (type: "multiple_choice" | "fill_in_blank" = "multiple_choice") => ({
         questionTitle: "",
         type,
+        timeLimit: 20,
         answerOptions:
             type === "multiple_choice"
                 ? [
@@ -32,6 +34,7 @@ export default function CreateQuiz() {
         !quizTitle.trim() ||
         questions.some((question) => {
             if (!question.questionTitle.trim()) return true;
+            if (question.timeLimit === undefined || question.timeLimit < 0) return true;
             if (question.type === "fill_in_blank") {
                 return !question.answerOptions[0]?.text.trim();
             }
@@ -51,6 +54,14 @@ export default function CreateQuiz() {
     const updateQuestionTitle = (index: number, value: string) => {
         setQuestions((prev) =>
             prev.map((question, i) => (i === index ? { ...question, questionTitle: value } : question))
+        );
+    };
+
+    const updateQuestionTimeLimit = (index: number, value: number) => {
+        setQuestions((prev) =>
+            prev.map((question, i) =>
+                i === index ? { ...question, timeLimit: value } : question
+            )
         );
     };
 
@@ -147,6 +158,7 @@ export default function CreateQuiz() {
         setQuizImage(null);
         setQuestions([createEmptyQuestion()]);
         setQuestionToDelete(null);
+        setIsPublic(true);
     };
 
     const handleSaveQuiz = () => {
@@ -162,7 +174,7 @@ export default function CreateQuiz() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ title: quizTitle, questions, image: quizImage }),
+                body: JSON.stringify({ title: quizTitle, questions, image: quizImage, is_public: isPublic }),
             });
 
             if (!response.ok) {
@@ -264,16 +276,28 @@ export default function CreateQuiz() {
                                 className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                             />
 
-                            <div className="mt-6 mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Question Type</label>
-                                <select
-                                    value={question.type}
-                                    onChange={(event) => updateQuestionType(questionIndex, event.target.value as "multiple_choice" | "fill_in_blank")}
-                                    className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                >
-                                    <option value="multiple_choice">Multiple Choice (4 answers)</option>
-                                    <option value="fill_in_blank">Fill in the Blank</option>
-                                </select>
+                            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Question Type</label>
+                                    <select
+                                        value={question.type}
+                                        onChange={(event) => updateQuestionType(questionIndex, event.target.value as "multiple_choice" | "fill_in_blank")}
+                                        className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                                    >
+                                        <option value="multiple_choice">Multiple Choice (4 answers)</option>
+                                        <option value="fill_in_blank">Fill in the Blank</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Time to answer (seconds)</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={question.timeLimit}
+                                        onChange={(event) => updateQuestionTimeLimit(questionIndex, Number(event.target.value))}
+                                        className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                                    />
+                                </div>
                             </div>
 
                             {question.type === "multiple_choice" && (
@@ -366,6 +390,19 @@ export default function CreateQuiz() {
                             <Button onClick={addQuestion} className="px-6 py-3">
                                 Add another question
                             </Button>
+                        </div>
+
+                        <div className="mt-6 flex justify-center">
+                            <div className="flex flex-col items-center rounded-3xl border border-gray-200 bg-white px-6 py-6 shadow-sm text-center max-w-xl w-full">
+                                <ToggleSwitch
+                                    checked={isPublic}
+                                    onChange={setIsPublic}
+                                />
+                                <div className="mt-4">
+                                    <p className="text-sm font-semibold text-gray-900">Make this quiz public</p>
+                                    <p className="text-sm text-gray-500 mt-1">Anyone can find and play this quiz when it is public.</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
