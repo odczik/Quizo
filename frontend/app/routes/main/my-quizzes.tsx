@@ -50,7 +50,7 @@ function QuizCard({ quiz, showEdit }: { quiz: Quiz; showEdit: boolean }) {
                 </div>
                 <div className="flex items-center gap-2">
                     <Link
-                        to={`/browse/${quiz.id}`}
+                        to={`/game/host/${quiz.id}`}
                         className="font-bold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full hover:bg-blue-100 transition-colors"
                     >
                         Play Now →
