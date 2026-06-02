@@ -40,7 +40,6 @@ class QuizController extends Controller
             'questions' => 'sometimes|array',
             'questions.*.questionTitle' => 'required_with:questions|string|max:65535',
             'questions.*.type' => 'required_with:questions|string|in:multiple_choice,fill_in_blank',
-            'questions.*.timeLimit' => 'nullable|integer|min:0',
             'questions.*.answerOptions' => 'required_with:questions|array',
             'questions.*.answerOptions.*.text' => 'required_with:questions|string|max:65535',
             'questions.*.answerOptions.*.correct' => 'required_with:questions|boolean',
@@ -62,7 +61,6 @@ class QuizController extends Controller
                 $question = $quiz->questions()->create([
                     'question_text' => $q['questionTitle'] ?? '',
                     'question_type' => $q['type'] ?? 'multiple_choice',
-                    'time_limit' => isset($q['timeLimit']) ? (int) $q['timeLimit'] : null,
                     'order_index' => $idx,
                 ]);
 
@@ -130,7 +128,7 @@ class QuizController extends Controller
         $request->validate([
             'question_text' => 'required|string|max:255',
             'question_type' => 'sometimes|required|string|in:multiple_choice,true_false,fill_in_blank',
-            'time_limit' => 'sometimes|nullable|integer|min:0',
+
 
             // Inputs for answers table
             'answers' => 'required|array',
@@ -141,7 +139,6 @@ class QuizController extends Controller
         $question = $quiz->questions()->create([
             'question_text' => $request->question_text,
             'question_type' => $request->question_type ?? 0,
-            'time_limit' => $request->time_limit ?? null,
         ]);
 
         $question->answers()->createMany($request->answers);
@@ -156,7 +153,7 @@ class QuizController extends Controller
         $request->validate([
             'question_text' => 'required|string|max:255',
             'question_type' => 'sometimes|required|string|in:multiple_choice,true_false,fill_in_blank',
-            'time_limit' => 'sometimes|nullable|integer|min:0',
+
 
             // Inputs for answers table
             'answers' => 'required|array',
@@ -167,7 +164,6 @@ class QuizController extends Controller
         $question->update([
             'question_text' => $request->question_text,
             'question_type' => $request->question_type ?? 0,
-            'time_limit' => $request->time_limit ?? null,
         ]);
 
         // Delete existing answers and create new ones
