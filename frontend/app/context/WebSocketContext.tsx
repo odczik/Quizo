@@ -16,12 +16,13 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     const socketRef = useRef<WebSocket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [lastMessage, setLastMessage] = useState<any>(null);
+    const wsUrl = import.meta.env.VITE_WS_URL;
 
     const params = useParams(); // Get game ID from URL if needed for connection
 
     useEffect(() => {
         // Connect to your Node.js websocket server
-        const ws = new WebSocket('ws://localhost:5000');
+        const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
             console.log('Connected to Game Server');
@@ -41,7 +42,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
             setTimeout(() => {
                 if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED) {
                     console.log('Attempting to reconnect to Game Server...');
-                    socketRef.current = new WebSocket('ws://localhost:5000');
+                    socketRef.current = new WebSocket(wsUrl);
                 }
             }, 1000);
         };
