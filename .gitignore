@@ -1,3 +1,4 @@
 .DS_Store
 /backend/websocket-server/node_modules
 /node_modules
+/backend/websocket-server/dist
