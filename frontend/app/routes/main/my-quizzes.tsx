@@ -12,9 +12,102 @@ interface Quiz {
     default_time_limit: number;
 }
 
+interface MyQuizzesResponse {
+    created: Quiz[];
+    liked: Quiz[];
+}
+
+function QuizCard({ quiz, showEdit }: { quiz: Quiz; showEdit: boolean }) {
+    return (
+        <div className="group bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 hover:shadow-lg transition-shadow flex flex-col relative">
+            {quiz.image ? (
+                <img src={quiz.image} alt={quiz.title} className="w-full h-48 object-cover" />
+            ) : (
+                <div className="w-full h-48 bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center">
+                    <span className="text-4xl">🎲</span>
+                </div>
+            )}
+
+            <div className="p-5 flex flex-col flex-grow bg-white z-10 relative">
+                <div className="flex justify-start items-end mb-2 w-full overflow-hidden flex-shrink-0">
+                    <Link
+                        to={`/browse/${quiz.id}`}
+                        className="text-xl !font-bold text-gray-900 flex-shrink-0 hover:text-blue-600 max-w-[70%]"
+                        title={quiz.title}
+                    >
+                        {quiz.title}
+                    </Link>
+                    <p className="text-xs text-gray-400 ml-2 mb-0.5 truncate flex-grow text-right" title={`Created ${new Date(quiz.created_at).toLocaleDateString()}`}>
+                        {new Date(quiz.created_at).toLocaleDateString()}
+                    </p>
+                </div>
+                <p className="text-gray-600 line-clamp-2">{quiz.description ?? "No description provided."}</p>
+            </div>
+
+            <div className="absolute left-0 right-0 bottom-0 translate-y-full group-hover:translate-y-0 bg-white shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.1)] rounded-t-2xl p-4 z-20 flex items-center justify-between border-t border-gray-100 transition-transform duration-150 ease-in-out text-sm text-gray-500 h-[60px]">
+                <div className="flex items-center gap-1 font-medium">
+                    ⏱️ {quiz.default_time_limit}s
+                </div>
+                <div className="flex items-center gap-2">
+                    <Link
+                        to={`/browse/${quiz.id}`}
+                        className="font-bold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full hover:bg-blue-100 transition-colors"
+                    >
+                        Play Now →
+                    </Link>
+                    {showEdit && (
+                        <Link
+                            to={`/quiz/create?edit=${quiz.id}`}
+                            className="font-semibold text-gray-700 bg-gray-100 px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                        >
+                            Edit
+                        </Link>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function QuizSection({
+    title,
+    quizzes,
+    showEdit,
+    emptyState,
+}: {
+    title: string;
+    quizzes: Quiz[];
+    showEdit: boolean;
+    emptyState: string;
+}) {
+    return (
+        <section className="w-full space-y-4">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+                <span className="text-sm font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-700">
+                    {quizzes.length}
+                </span>
+            </div>
+
+            {quizzes.length > 0 ? (
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {quizzes.map((quiz) => (
+                        <QuizCard key={`${title}-${quiz.id}`} quiz={quiz} showEdit={showEdit} />
+                    ))}
+                </div>
+            ) : (
+                <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center text-gray-600">
+                    {emptyState}
+                </div>
+            )}
+        </section>
+    );
+}
+
 export default function MyQuizzes() {
     const { user, isLoading: authLoading } = useAuth();
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+    const [createdQuizzes, setCreatedQuizzes] = useState<Quiz[]>([]);
+    const [likedQuizzes, setLikedQuizzes] = useState<Quiz[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +120,8 @@ export default function MyQuizzes() {
 
         if (!user) {
             setIsLoading(false);
-            setQuizzes([]);
+            setCreatedQuizzes([]);
+            setLikedQuizzes([]);
             setError("Please log in to view your quizzes.");
             return;
         }
@@ -41,15 +135,17 @@ export default function MyQuizzes() {
                 if (!response.ok) {
                     if (response.status === 401) {
                         setError("Please log in to view your quizzes.");
-                        setQuizzes([]);
+                        setCreatedQuizzes([]);
+                        setLikedQuizzes([]);
                         return;
                     }
                     throw new Error("Failed to load your quizzes.");
                 }
 
-                const data = await response.json();
+                const data: MyQuizzesResponse = await response.json();
                 if (!isMounted) return;
-                setQuizzes(data.created ?? []);
+                setCreatedQuizzes(Array.isArray(data?.created) ? data.created : []);
+                setLikedQuizzes(Array.isArray(data?.liked) ? data.liked : []);
             } catch (err: any) {
                 if (!isMounted) return;
                 setError(err?.message ?? "An error occurred while loading quizzes.");
@@ -106,44 +202,20 @@ export default function MyQuizzes() {
                         </div>
                     )}
                 </div>
-            ) : quizzes.length > 0 ? (
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {quizzes.map((quiz) => (
-                        <div key={quiz.id} className="group bg-white rounded-3xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
-                            {quiz.image ? (
-                                <img src={quiz.image} alt={quiz.title} className="w-full h-48 object-cover" />
-                            ) : (
-                                <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                    <span className="text-5xl">🎯</span>
-                                </div>
-                            )}
-
-                            <div className="p-5 flex flex-col gap-3">
-                                <Link to={`/browse/${quiz.id}`} className="text-xl font-semibold text-gray-900 hover:text-blue-600">
-                                    {quiz.title}
-                                </Link>
-                                <p className="text-gray-600 line-clamp-3 min-h-[3rem]">{quiz.description ?? "No description provided."}</p>
-                                <div className="flex items-center justify-between text-sm text-gray-500">
-                                    <span>Created {new Date(quiz.created_at).toLocaleDateString()}</span>
-                                    <span>{quiz.default_time_limit}s</span>
-                                </div>
-                                <div className="flex gap-2 pt-2">
-                                    <Link
-                                        to={`/browse/${quiz.id}`}
-                                        className="flex-1 inline-flex items-center justify-center px-4 py-2 rounded font-medium transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300"
-                                    >
-                                        View
-                                    </Link>
-                                    <Link
-                                        to={`/quiz/create?edit=${quiz.id}`}
-                                        className="flex-1 inline-flex items-center justify-center px-4 py-2 rounded font-medium transition-colors border border-gray-300 text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Edit
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+            ) : createdQuizzes.length > 0 || likedQuizzes.length > 0 ? (
+                <div className="w-full flex flex-col gap-10">
+                    <QuizSection
+                        title="Created by you"
+                        quizzes={createdQuizzes}
+                        showEdit={true}
+                        emptyState="You have not created any quizzes yet."
+                    />
+                    <QuizSection
+                        title="Liked quizzes"
+                        quizzes={likedQuizzes}
+                        showEdit={false}
+                        emptyState="You have not liked any quizzes yet."
+                    />
                 </div>
             ) : (
                 <div className="py-20 text-center text-gray-500 w-full">
