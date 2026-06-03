@@ -5,7 +5,7 @@ import { sendToPlayers, executeForEachPlayer } from './util/util';
 
 import type { CustomWebSocket, Room } from './types/types';
 
-const PORT = 5000;
+const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT });
 
 const rooms: Record<string, Room> = {}; // In-memory storage for game rooms and their players
