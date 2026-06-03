@@ -1,6 +1,20 @@
 import { Outlet } from "react-router";
 import Navbar from "~/components/layouts/Navbar";
 
+export function meta() {
+    return [
+        { title: "Quizo" },
+        {
+            property: "og:title",
+            content: "Quizo - The Ultimate Quiz Game",
+        },
+        {
+            name: "description",
+            content: "Quizo - The Ultimate Quiz Game",
+        },
+    ];
+}
+
 export default function MainLayout() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-100 font-sans text-gray-900">
