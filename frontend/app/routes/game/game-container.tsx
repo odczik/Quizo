@@ -14,7 +14,11 @@ export default function GameContainer({ params }: { params: { id?: string } }) {
 
     useEffect(() => {
         if (lastMessage) {
+            console.log("Received message:", `'${lastMessage}'`);
+            console.log("Received message type:", `'${lastMessage.type}'`);
+            console.log("Is it game_start?", lastMessage.type === "game_start");
             if (lastMessage.type === "game_start") {
+                console.log("Setting game state to in-game");
                 setGameState("in-game");
             } else if (lastMessage.type === 'player_left') {
                 console.log('Player left:', lastMessage.username);
