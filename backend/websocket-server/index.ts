@@ -2,10 +2,15 @@ import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
 import db from './db';
 import { sendToPlayers, executeForEachPlayer } from './util/util';
+import path from 'path';
+import dotenv from 'dotenv';
 
 import type { CustomWebSocket, Room } from './types/types';
 
-const PORT = 8080;
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+dotenv.config({ path: path.resolve(__dirname, envFile) });
+
+const PORT = Number(process.env.PORT) || 8080;
 const wss = new WebSocketServer({ port: PORT });
 
 const rooms: Record<string, Room> = {}; // In-memory storage for game rooms and their players

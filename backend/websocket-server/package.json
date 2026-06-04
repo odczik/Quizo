@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "better-sqlite3": "^12.9.0",
+    "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",
     "kysely": "^0.28.17",
     "mysql2": "^3.22.4",
