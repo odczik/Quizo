@@ -12,7 +12,6 @@ const DB_CLIENT = process.env.DB_CLIENT;
 let dialect: any;
 
 if (DB_CLIENT === 'sqlite') {
-    // SQLite Dialect Setup
     dialect = new SqliteDialect({
         database: new Database(
             path.resolve(__dirname, '../web-server/database/database.sqlite')
@@ -31,7 +30,6 @@ if (DB_CLIENT === 'sqlite') {
     });
 }
 
-// --- 2. INITIALIZE KYSELY ---
 const db = new Kysely<DatabaseType>({
     dialect,
 });
