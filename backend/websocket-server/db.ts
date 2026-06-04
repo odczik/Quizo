@@ -1,5 +1,4 @@
 import { Kysely, SqliteDialect, MysqlDialect } from 'kysely';
-import Database from 'better-sqlite3';
 import path from 'path';
 import type { Database as DatabaseType } from './types/db_types';
 import dotenv from 'dotenv';
@@ -12,6 +11,7 @@ const DB_CLIENT = process.env.DB_CLIENT;
 let dialect: any;
 
 if (DB_CLIENT === 'sqlite') {
+    const Database = require('better-sqlite3');
     dialect = new SqliteDialect({
         database: new Database(
             path.resolve(__dirname, '../web-server/database/database.sqlite')
