@@ -16,6 +16,7 @@ export default function GameContainer({ params }: { params: { id?: string } }) {
         if (lastMessage) {
             switch (lastMessage.type) {
                 case "game_start":
+                    console.log('Game started!');
                     setGameState("in-game");
                     break;
                 case 'player_left':
