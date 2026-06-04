@@ -14,7 +14,7 @@ export default function GameContainer({ params }: { params: { id?: string } }) {
 
     useEffect(() => {
         if (lastMessage) {
-            //console.log('Received message in GameContainer:', lastMessage);
+            console.log('Received message in GameContainer:', lastMessage);
             switch (lastMessage.type) {
                 case "game_start":
                     console.log('Game started!');
