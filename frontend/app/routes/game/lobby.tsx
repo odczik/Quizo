@@ -102,6 +102,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                     setPlayers([]);
                     break;
                 case "game_start":
+                    console.log('Game started! (lobby received start message)');
                     break;
                 case 'error':
                     console.error('Error from server:', lastMessage.message);
