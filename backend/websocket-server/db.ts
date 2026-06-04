@@ -4,7 +4,7 @@ import type { Database as DatabaseType } from './types/db_types';
 import dotenv from 'dotenv';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: path.resolve(__dirname, '../', envFile) });
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 const DB_CLIENT = process.env.DB_CLIENT;
 
@@ -14,7 +14,7 @@ if (DB_CLIENT === 'sqlite') {
     const Database = require('better-sqlite3');
     dialect = new SqliteDialect({
         database: new Database(
-            path.resolve(__dirname, '../web-server/database/database.sqlite')
+            path.resolve(process.cwd(), '../web-server/database/database.sqlite')
         ),
     });
 } else if (DB_CLIENT === 'mysql') {
