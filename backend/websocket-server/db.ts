@@ -5,7 +5,7 @@ import type { Database as DatabaseType } from './types/db_types';
 import dotenv from 'dotenv';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: path.resolve(__dirname, envFile) });
+dotenv.config({ path: path.resolve(__dirname, '../', envFile) });
 
 const DB_CLIENT = process.env.DB_CLIENT;
 
