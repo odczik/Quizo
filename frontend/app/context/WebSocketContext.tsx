@@ -20,8 +20,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
     const params = useParams(); // Get game ID from URL if needed for connection
 
-    useEffect(() => {
-        // Connect to your Node.js websocket server
+    const connect = () => {
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -31,27 +30,31 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            setLastMessage(data); // Save it so components can react
+            setLastMessage({ ...data }); // Create a new object to ensure re-render
         };
 
         ws.onclose = (e) => {
             console.log('Connection closed', e);
             setIsConnected(false);
 
-            // Try to reconnect after a short delay (only runs once)
+            // Try to reconnect after a short delay
             setTimeout(() => {
                 if (!socketRef.current || socketRef.current.readyState === WebSocket.CLOSED) {
                     console.log('Attempting to reconnect to Game Server...');
-                    socketRef.current = new WebSocket(wsUrl);
+                    connect();
                 }
             }, 1000);
         };
 
         socketRef.current = ws;
+    }
+
+    useEffect(() => {
+        connect();
 
         // Cleanup: Close the connection when the Provider unmounts
         return () => {
-            ws.close();
+            socketRef.current?.close();
         };
     }, []); // Removing socketRef.current from dependencies because it causes infinite reconnect loops!
 
