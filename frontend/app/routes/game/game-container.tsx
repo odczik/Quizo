@@ -14,17 +14,11 @@ export default function GameContainer({ params }: { params: { id?: string } }) {
 
     useEffect(() => {
         if (lastMessage) {
-            switch (lastMessage.type) {
-                case "game_start":
-                    console.log('Game started!');
-                    setGameState("in-game");
-                    break;
-                case 'player_left':
-                    console.log('Player left:', lastMessage.username);
-                    notify(`${lastMessage.username} has left the game.`, "warning");
-                    break;
-                default:
-                    break;
+            if (lastMessage.type === "game_start") {
+                setGameState("in-game");
+            } else if (lastMessage.type === 'player_left') {
+                console.log('Player left:', lastMessage.username);
+                notify(`${lastMessage.username} has left the game.`, "warning");
             }
         }
     }, [lastMessage]);
