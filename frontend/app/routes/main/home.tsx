@@ -2,7 +2,7 @@ import type { Route } from "../main/+types/home";
 import { Link } from "~/components/Link";
 export function meta({}: Route.MetaArgs) {
     return [
-        { title: "New React Router App" },
+        { title: "Quizo" },
         { name: "description", content: "Welcome to React Router!" },
     ];
 }
