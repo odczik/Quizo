@@ -193,7 +193,7 @@ export default function CreateQuiz() {
                 const blob = dataURLToBlob(quizImage);
                 form.append("image", blob, "quiz-image.png");
 
-                response = await fetch("/api/quizzes", {
+                response = await apiClient("/api/quizzes", {
                     method: "POST",
                     body: form,
                 });
