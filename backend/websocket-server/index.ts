@@ -145,8 +145,6 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 					room = rooms[ws.roomId];
 
-					if (room.state !== 'in-game') ws.terminate();
-
 					const playerToKick = room.players.find(p => p.username === data.username);
 					if (playerToKick) {
 						playerToKick.send(JSON.stringify({ type: 'kicked', message: 'You have been kicked from the game.' }));
@@ -164,8 +162,6 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					}
 
 					room = rooms[ws.roomId];
-
-					if (room.state !== 'in-game') ws.terminate();
 
 					if(room.players.length === 0) {
 						ws.send(JSON.stringify({ type: 'error', message: 'At least one player is required to start the game' }));
