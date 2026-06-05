@@ -15,8 +15,7 @@ export default function QuizDetail() {
     const [isLiked, setIsLiked] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    
+    const [showAnswers, setShowAnswers] = useState<boolean[]>([]);
 
     useEffect(() => {
         const fetchQuiz = async () => {
@@ -29,6 +28,9 @@ export default function QuizDetail() {
                 console.log("Fetched quiz data:", data);
                 setQuiz(data);
                 setIsLiked(data.liked_by_user || false);
+                if (data.questions) {
+                    setShowAnswers(new Array(data.questions.length).fill(false));
+                }
             } catch (err: any) {
                 setError(err.message || "An error occurred.");
             } finally {
@@ -40,6 +42,14 @@ export default function QuizDetail() {
             fetchQuiz();
         }
     }, [id]);
+
+    const toggleShowAnswer = (index: number) => {
+        setShowAnswers(prev => {
+            const newShowAnswers = [...prev];
+            newShowAnswers[index] = !newShowAnswers[index];
+            return newShowAnswers;
+        });
+    };
 
     if (loading) {
         return (
@@ -113,6 +123,31 @@ export default function QuizDetail() {
                     )}
                 </div>
             </Card>
+
+            {quiz.questions && quiz.questions.length > 0 && (
+                <Card className="p-8 shadow-lg mt-4">
+                    <h2 className="text-2xl font-bold mb-4">Questions</h2>
+                    <div className="space-y-4">
+                        {quiz.questions.map((question: any, index: number) => (
+                            <div key={question.id} className="p-6 rounded-lg shadow-lg">
+                                <p className="font-semibold">{index + 1}. {question.question_text}</p>
+                                <Button onClick={() => toggleShowAnswer(index)} variant="secondary" className="mt-2">
+                                    {showAnswers[index] ? 'Hide Answers' : 'Show Answers'}
+                                </Button>
+                                {showAnswers[index] && (
+                                    <ul className="mt-2 list-disc list-inside">
+                                        {question.answers.map((answer: any) => (
+                                            <li key={answer.id} className={`${answer.is_correct ? 'text-green-500 font-bold' : ''}`}>
+                                                {answer.answer_text}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            )}
         </div>
     );
 }
