@@ -91,7 +91,9 @@ export default function Game() {
                     setResults(lastMessage);
                     break;
                 case 'question_results':
-                    setQuestionStats(lastMessage.answer_statistics);
+                    const stats = { ...lastMessage.answer_statistics };
+                    stats.max = Math.max(...Object.values(lastMessage.answer_statistics).filter((v): v is number => typeof v === 'number'));
+                    setQuestionStats(stats);
                     break;
                 case 'update_scores':
                     setResults(lastMessage);
@@ -199,7 +201,7 @@ export default function Game() {
                                                 className="text-lg px-8 py-3 shadow-lg"
                                                 onClick={() => sendMessage("next_question")}
                                             >
-                                                Next Question
+                                                {question.question_index == question.questions_length ? "Finish Game" : "Next Question"}
                                             </Button>
                                         </div>
                                     )}
@@ -224,7 +226,7 @@ export default function Game() {
 
                                     <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
                                         {answers.map((answer: any, i: number) => {
-                                            const percentage = questionStats[answer.id] ? (questionStats[answer.id] / questionStats.total) * 100 : 0;
+                                            const percentage = questionStats[answer.id] ? (questionStats[answer.id] / questionStats.max) * 100 : 0;
                                             return (
                                                 <div key={answer.id} className="flex flex-col">
                                                     <div className="flex items-center justify-between mb-1">
@@ -232,7 +234,7 @@ export default function Game() {
                                                             {answer.answer_text}
                                                         </span>
                                                         <span className="text-white font-bold text-lg md:text-xl">
-                                                            {questionStats[answer.id] || 0} votes
+                                                            {questionStats[answer.id] || 0} guesses
                                                         </span>
                                                     </div>
                                                     <ProgressBar progress={percentage} color={(i == 0 && "red") || (i == 1 && "blue") || (i == 2 && "yellow") || (i == 3 && "green") || "white"} className="w-full !bg-white/10" />
