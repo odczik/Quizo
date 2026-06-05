@@ -21,6 +21,7 @@ export default function Game() {
     const [answered, setAnswered] = useState(false);
     const [isHost] = useState(matches[matches.length - 1].id === "host-lobby");
     const [results, setResults] = useState<any | null>(null);
+    const [questionStats, setQuestionStats] = useState<any | null>(null);
     const [answerTimer, setAnswerTimer] = useState<number>(100);
     const [finalScores, setFinalScores] = useState<any[] | null>(null);
     const [placement, setPlacement] = useState<number | null>(null);
@@ -87,6 +88,9 @@ export default function Game() {
                 case 'answer_result':
                     setAnswered(true);
                     setResults(lastMessage);
+                    break;
+                case 'question_results':
+                    setQuestionStats(lastMessage.answer_statistics);
                     break;
                 case 'update_scores':
                     setResults(lastMessage);
@@ -201,48 +205,65 @@ export default function Game() {
                                 </div>
                             </div>
                         ) : (
-                            <>
-                            <div className="flex-1 flex items-center justify-center p-4">
-                                <h1 className="text-4xl md:text-6xl font-bold text-center">{answers && timer}</h1>
-                            </div>
-
-                            <div className="flex-1 flex items-center justify-center p-4">
-                                <h1 className="text-4xl md:text-6xl font-bold text-center">{question ? question.question_text : <Spinner />}</h1>
-                            </div>
-
-                            {isHost && (
-                                <div className="flex justify-center mb-4">
-                                    <Button 
-                                        variant="primary" 
-                                        onClick={() => sendMessage("skip_question")}
-                                    >
-                                        Next Question
-                                    </Button>
-                                </div>
-                            )}
-                            
-                            <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
-                                {answers ? (
-                                    <div className="w-full h-full grid grid-cols-2 gap-4">
-                                        {answers.map((answer: any, index: number) => (
-                                            <AnswerButton 
-                                                key={answer.id} 
-                                                color={index + 1}
-                                                text={answer.answer_text} 
-                                                className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
-                                                onClick={() => {
-                                                    sendMessage("submit_answer", { answerId: answer.id });
-                                                    setAnswered(true);
-                                                }}
-                                                disabled={isHost}
-                                            />
-                                        ))}
+                            questionStats ? (
+                                <div className="flex-1 flex flex-col items-center justify-center w-full p-4">
+                                    <h2 className="text-3xl md:text-5xl font-bold text-center text-white drop-shadow-md mb-6">
+                                        Question Results
+                                    </h2>
+                                    <div className="flex justify-center mt-6 pt-4">
+                                        <Button 
+                                            variant="primary" 
+                                            className="text-lg px-8 py-3 shadow-lg"
+                                            onClick={() => sendMessage("update_scores")}
+                                        >
+                                            Next
+                                        </Button>
                                     </div>
-                                ) : (
-                                    <ProgressBar progress={answerTimer} color="white" className="w-full, !bg-transparent" />
+                                </div>
+                            ) : (
+                                <>
+                                <div className="flex-1 flex items-center justify-center p-4">
+                                    <h1 className="text-4xl md:text-6xl font-bold text-center">{answers && timer}</h1>
+                                </div>
+
+                                <div className="flex-1 flex items-center justify-center p-4">
+                                    <h1 className="text-4xl md:text-6xl font-bold text-center">{question ? question.question_text : <Spinner />}</h1>
+                                </div>
+
+                                {isHost && (
+                                    <div className="flex justify-center mb-4">
+                                        <Button 
+                                            variant="primary" 
+                                            onClick={() => sendMessage("skip_question")}
+                                        >
+                                            Next Question
+                                        </Button>
+                                    </div>
                                 )}
-                            </div>
-                            </>
+                                
+                                <div className="h-1/3 min-h-[33vh] w-full p-4 pb-8">
+                                    {answers ? (
+                                        <div className="w-full h-full grid grid-cols-2 gap-4">
+                                            {answers.map((answer: any, index: number) => (
+                                                <AnswerButton 
+                                                    key={answer.id} 
+                                                    color={index + 1}
+                                                    text={answer.answer_text} 
+                                                    className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
+                                                    onClick={() => {
+                                                        sendMessage("submit_answer", { answerId: answer.id });
+                                                        setAnswered(true);
+                                                    }}
+                                                    disabled={isHost}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <ProgressBar progress={answerTimer} color="white" className="w-full, !bg-transparent" />
+                                    )}
+                                </div>
+                                </>
+                            )
                         )
                     )}
                 </div>
