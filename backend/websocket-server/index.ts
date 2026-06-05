@@ -28,6 +28,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
     }, 3000);
 
     ws.on('message', (message: string) => {
+		let room: Room;
         try {
             const data = JSON.parse(message);
 			console.log('> ', data);
@@ -76,6 +77,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						questions: [],
 						questionIndex: 0,
 						players_answered: 0,
+						answer_statistics: {},
 						timeouts: []
 					};
 
@@ -140,11 +142,16 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can kick players' }));
 						return;
 					}
-					const playerToKick = rooms[ws.roomId].players.find(p => p.username === data.username);
+
+					room = rooms[ws.roomId];
+
+					if (room.state !== 'in-game') ws.terminate();
+
+					const playerToKick = room.players.find(p => p.username === data.username);
 					if (playerToKick) {
 						playerToKick.send(JSON.stringify({ type: 'kicked', message: 'You have been kicked from the game.' }));
-						rooms[ws.roomId].players = rooms[ws.roomId].players.filter(p => p !== playerToKick);
-						sendToPlayers(rooms[ws.roomId], { type: 'player_left', username: data.username });
+						room.players = room.players.filter(p => p !== playerToKick);
+						sendToPlayers(room, { type: 'player_left', username: data.username });
 					} else {
 						ws.send(JSON.stringify({ type: 'error', message: 'Player not found in the game' }));
 						return;
@@ -155,30 +162,41 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can start the game' }));
 						return;
 					}
-					if(rooms[ws.roomId].players.length === 0) {
+
+					room = rooms[ws.roomId];
+
+					if (room.state !== 'in-game') ws.terminate();
+
+					if(room.players.length === 0) {
 						ws.send(JSON.stringify({ type: 'error', message: 'At least one player is required to start the game' }));
 						return;
 					}
-					rooms[ws.roomId].state = 'in-game';
-					sendToPlayers(rooms[ws.roomId], { type: 'game_start' });
-					handleGameLogic(rooms[ws.roomId]); // Start the game logic
+					room.state = 'in-game';
+					sendToPlayers(room, { type: 'game_start' });
+					handleGameLogic(room); // Start the game logic
 					break;
 				case 'submit_answer':
 					if (!ws.roomId || !rooms[ws.roomId]) return;
 
-					console.log(`Received answer from ${ws.username}:`, data);
-					const timeTaken = new Date().getTime() - (rooms[ws.roomId].question_time?.getTime() || 0);
+					room = rooms[ws.roomId];
 
-					rooms[ws.roomId].players_answered = (rooms[ws.roomId].players_answered || 0) + 1;
+					if (room.state !== 'in-game') ws.terminate();
+
+					console.log(`Received answer from ${ws.username}:`, data);
+					const timeTaken = new Date().getTime() - (room.question_time?.getTime() || 0);
+
+					room.players_answered = (room.players_answered || 0) + 1;
 
 					// Validate the answer
-					const currentQuestion = rooms[ws.roomId].questions[rooms[ws.roomId].questionIndex - 1];
+					const currentQuestion = room.questions[room.questionIndex - 1];
 					const selectedAnswer = currentQuestion.answers?.find(a => a.id === data.answerId);
+
+					room.answer_statistics[data.answerId] = (room.answer_statistics[data.answerId] || 0) + 1;
 
 					if (selectedAnswer && selectedAnswer.is_correct) {
 						// Simple scoring: More points for faster answers
 						const maxPoints = 1000;
-						const totalTimeMs = rooms[ws.roomId].default_time_limit * 1000;
+						const totalTimeMs = room.default_time_limit * 1000;
 
 						// Calculate percentage of time remaining (0.0 to 1.0)
 						const timeFraction = Math.max(0, 1 - (timeTaken / totalTimeMs));
@@ -193,8 +211,8 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						ws.was_correct = false;
 					}
 
-					if(rooms[ws.roomId].players_answered === rooms[ws.roomId].players.length) {
-						updatePlayerScores(rooms[ws.roomId]);
+					if(room.players_answered === room.players.length) {
+						updatePlayerScores(room);
 					}
 					break;
 				case 'skip_question':
@@ -202,20 +220,42 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can skip questions' }));
 						return;
 					}
-					updatePlayerScores(rooms[ws.roomId]);
+
+					room = rooms[ws.roomId];
+
+					if (room.state !== 'in-game') ws.terminate();
+
+					updatePlayerScores(room);
 					break;
 				case 'next_question':
 					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
 						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can move to the next question' }));
 						return;
 					}
-					if(rooms[ws.roomId].questionIndex >= rooms[ws.roomId].questions.length) {
+
+					room = rooms[ws.roomId];
+
+					if (room.state !== 'in-game') ws.terminate();
+
+					if(room.questionIndex >= room.questions.length) {
 						// No more questions, end the game
-						gameFinished(rooms[ws.roomId]);
+						gameFinished(room);
 						return;
 					} else {
-						sendNextQuestion(rooms[ws.roomId]);
+						sendNextQuestion(room);
 					}
+					break;
+				case "update_scores":
+					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can update scores' }));
+						return;
+					}
+
+					room = rooms[ws.roomId];
+
+					if (room.state !== 'in-game') ws.terminate();
+
+					updatePlayerScores(room);
 					break;
 				default:
 					console.log('Unknown message type:', data.type);
@@ -350,10 +390,16 @@ const sendNextQuestion = (room: Room) => {
 	}, 6000);
 
 	const t3 = setTimeout(() => {
-		updatePlayerScores(room);
+		showResults(room);
 	}, (question.time_limit !== null ? question.time_limit : room.default_time_limit) * 1000 + 6000);
 
 	room.timeouts.push(t1, t2, t3);
+}
+const showResults = (room: Room) => {
+	room.host_ws?.send(JSON.stringify({
+		type: 'question_results',
+		answer_statistics: room.answer_statistics
+	}));
 }
 const updatePlayerScores = (room: Room) => {
 	if (room.timeouts) {
