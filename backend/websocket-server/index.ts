@@ -208,7 +208,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					}
 
 					if(room.players_answered === room.players.length) {
-						showResults(room);
+						updatePlayerScores(room);
 					}
 					break;
 				case 'skip_question':
@@ -241,9 +241,9 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						sendNextQuestion(room);
 					}
 					break;
-				case "update_scores":
+				case "show_leaderboard":
 					if (!ws.isHost || !ws.roomId || !rooms[ws.roomId]) {
-						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can update scores' }));
+						ws.send(JSON.stringify({ type: 'error', message: 'Only the host can show the leaderboard' }));
 						return;
 					}
 
@@ -251,7 +251,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 
 					if (room.state !== 'in-game') ws.terminate();
 
-					updatePlayerScores(room);
+					showLeaderboard(room);
 					break;
 				default:
 					ws.close(1007, 'Unknown message type');
@@ -386,15 +386,15 @@ const sendNextQuestion = (room: Room) => {
 	}, 6000);
 
 	const t3 = setTimeout(() => {
-		showResults(room);
+		updatePlayerScores(room);
 	}, (question.time_limit !== null ? question.time_limit : room.default_time_limit) * 1000 + 6000);
 
 	room.timeouts.push(t1, t2, t3);
 }
-const showResults = (room: Room) => {
+const showLeaderboard = (room: Room) => {
 	room.host_ws?.send(JSON.stringify({
-		type: 'question_results',
-		answer_statistics: room.answer_statistics
+		type: 'update_scores',
+		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
 	}));
 }
 const updatePlayerScores = (room: Room) => {
@@ -403,9 +403,10 @@ const updatePlayerScores = (room: Room) => {
 	}
 	room.timeouts = [];
 
+	// Send answer statistics to the host for display
 	room.host_ws?.send(JSON.stringify({
-		type: 'update_scores',
-		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
+		type: 'question_results',
+		answer_statistics: room.answer_statistics
 	}));
 
 	executeForEachPlayer(room, (player) => {

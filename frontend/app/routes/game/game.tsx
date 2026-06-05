@@ -43,6 +43,7 @@ export default function Game() {
                     setAnswers(null);
                     setAnswered(false);
                     setResults(null);
+                    setQuestionStats(null);
                     setAnswerTimer(100);
                     setTimeout(() => {
                         setCounter(2);
@@ -214,7 +215,7 @@ export default function Game() {
                                         <Button 
                                             variant="primary" 
                                             className="text-lg px-8 py-3 shadow-lg"
-                                            onClick={() => sendMessage("update_scores")}
+                                            onClick={() => sendMessage("show_leaderboard")}
                                         >
                                             Next
                                         </Button>
