@@ -41,7 +41,7 @@ function QuizCard({ quiz, showEdit }: { quiz: Quiz; showEdit: boolean }) {
                         {new Date(quiz.created_at).toLocaleDateString()}
                     </p>
                 </div>
-                <p className="text-gray-600 line-clamp-2">{quiz.description ?? "No description provided."}</p>
+                <p className="text-gray-600 line-clamp-2">{quiz.description ?? "No description available."}</p>
             </div>
 
             <div className="absolute left-0 right-0 bottom-0 translate-y-full group-hover:translate-y-0 bg-white shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.1)] rounded-t-2xl p-4 z-20 flex items-center justify-between border-t border-gray-100 transition-transform duration-150 ease-in-out text-sm text-gray-500 h-[60px]">

@@ -183,7 +183,7 @@ export default function Browse() {
                                         By {quiz.created_by}
                                     </p>
                                 </div>
-                                <p className="text-gray-600 line-clamp-2">{quiz.description}</p>
+                                <p className="text-gray-600 line-clamp-2">{quiz.description ?? "No description available."}</p>
                             </div>
 
                             {/* Hover compartment - slides up from below the card */}
