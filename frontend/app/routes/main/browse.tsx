@@ -175,7 +175,7 @@ export default function Browse() {
                             
                             {/* Standard content area */}
                             <div className="p-5 flex flex-col flex-grow bg-white z-10 relative">
-                                <div className="flex justify-start items-end mb-2 w-full overflow-hidden flex-shrink-0">
+                                <div className="flex justify-start items-start mb-4 w-full overflow-hidden flex-shrink-0">
                                     <Link to={`/browse/${quiz.id}`} className="text-xl !font-bold text-gray-900 flex-shrink-0 hover:text-blue-600 max-w-[70%]" title={quiz.title}>
                                         {quiz.title}
                                     </Link>
