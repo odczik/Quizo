@@ -14,7 +14,7 @@ export default function Game() {
     const matches = useMatches();
 
     const [gameState, setGameState] = useState<'get-ready' | 'in-progress' | 'finished'>('get-ready');
-    const [counter, setCounter] = useState(3);
+    const [counter, setCounter] = useState<number | null>(null);
     const [timer, setTimer] = useState(0);
     const [question, setQuestion] = useState<any | null>(null);
     const [answers, setAnswers] = useState<any | null>(null);
@@ -115,7 +115,7 @@ export default function Game() {
         case 'get-ready':
             return (
                 <div className="flex items-center justify-center h-screen">
-                    <h1 className="text-4xl font-bold">{counter}</h1>
+                    <h1 className="text-4xl font-bold">{counter !== null ? counter : 'Get Ready!'}</h1>
                 </div>
             );
         case 'in-progress':
@@ -150,7 +150,7 @@ export default function Game() {
                             </div>
                         ) : (
                             <div className="flex-1 flex items-center justify-center">
-                                Waiting for the next question... <Spinner className="ml-4" />
+                                Waiting for other players... <Spinner className="ml-4" />
                             </div>
                         )
                     ) : (
