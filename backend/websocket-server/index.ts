@@ -396,6 +396,11 @@ const showLeaderboard = (room: Room) => {
 		type: 'update_scores',
 		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
 	}));
+
+	executeForEachPlayer(room, (player) => {
+		player.aquiredPoints = 0;
+		player.was_correct = null;
+	}, { excludeHost: true });
 }
 const updatePlayerScores = (room: Room) => {
 	if (room.timeouts) {
@@ -415,8 +420,6 @@ const updatePlayerScores = (room: Room) => {
 			correct: player.was_correct || false,
 			points: player.aquiredPoints || 0
 		}));
-		player.aquiredPoints = 0;
-		player.was_correct = null;
 	}, { excludeHost: true });
 
 	room.players_answered = 0;
