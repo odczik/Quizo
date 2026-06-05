@@ -179,7 +179,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                             onChange={(e) => setPlayerName(e.target.value)}
                             placeholder="Mike Oxlong" 
                             error={error}
-                            className="mb-4 !text-gray-100" 
+                            className="mb-4 !text-gray-100 max-w-[90%] mx-auto" 
                             maxLength={20}
                         />
                         <Button onClick={() => joinGame()}>Join Game</Button>
@@ -193,6 +193,7 @@ export default function Lobby({ params }: { params: { id?: string } }) {
                             onChange={handlePinChange}
                             placeholder="123456" 
                             type="text"
+                            inputMode="numeric"
                             error={error}
                             className="text-center font-bold tracking-widest text-lg text-gray-100 w-48 mx-auto"
                         />
