@@ -260,7 +260,9 @@ const handleGameLogic = async (room: Room) => {
 
 	await loadQuestionsIntoMemory(room);
 
-	sendNextQuestion(room);
+	setTimeout(() => {
+		sendNextQuestion(room);
+	}, 3000); // Give clients a moment to prepare for the first question
 }
 
 const loadQuestionsIntoMemory = async (room: Room) => {
