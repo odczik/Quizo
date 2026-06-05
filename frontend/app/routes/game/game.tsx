@@ -209,8 +209,9 @@ export default function Game() {
                             questionStats ? (
                                 <div className="flex-1 flex flex-col items-center justify-center w-full p-4">
                                     <h2 className="text-3xl md:text-5xl font-bold text-center text-white drop-shadow-md mb-6">
-                                        Question Results
+                                        Answer Statistics
                                     </h2>
+
                                     <div className="flex justify-center mt-6 pt-4">
                                         <Button 
                                             variant="primary" 
@@ -219,6 +220,25 @@ export default function Game() {
                                         >
                                             Next
                                         </Button>
+                                    </div>
+
+                                    <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
+                                        {answers.map((answer: any, i: number) => {
+                                            const percentage = questionStats[answer.id] ? (questionStats[answer.id] / questionStats.total) * 100 : 0;
+                                            return (
+                                                <div key={answer.id} className="flex flex-col">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-white font-bold text-lg md:text-xl">
+                                                            {answer.answer_text}
+                                                        </span>
+                                                        <span className="text-white font-bold text-lg md:text-xl">
+                                                            {questionStats[answer.id] || 0} votes
+                                                        </span>
+                                                    </div>
+                                                    <ProgressBar progress={percentage} color={(i == 0 && "red") || (i == 1 && "blue") || (i == 2 && "yellow") || (i == 3 && "green") || "white"} className="w-full !bg-white/10" />
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ) : (
