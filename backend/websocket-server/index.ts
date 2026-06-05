@@ -254,7 +254,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					updatePlayerScores(room);
 					break;
 				default:
-					console.log('Unknown message type:', data.type);
+					ws.close(1007, 'Unknown message type');
 					break;
 			}
         } catch (e) {
