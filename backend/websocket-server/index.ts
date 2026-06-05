@@ -411,7 +411,8 @@ const updatePlayerScores = (room: Room) => {
 	// Send answer statistics to the host for display
 	room.host_ws?.send(JSON.stringify({
 		type: 'question_results',
-		answer_statistics: room.answer_statistics
+		answer_statistics: room.answer_statistics,
+		correct_answer_id: room.questions[room.questionIndex - 1].answers?.find(a => a.is_correct)?.id || null
 	}));
 
 	executeForEachPlayer(room, (player) => {

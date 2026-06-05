@@ -91,9 +91,11 @@ export default function Game() {
                     setResults(lastMessage);
                     break;
                 case 'question_results':
-                    const stats = { ...lastMessage.answer_statistics };
-                    stats.max = Math.max(...Object.values(lastMessage.answer_statistics).filter((v): v is number => typeof v === 'number'));
-                    setQuestionStats(stats);
+                    setQuestionStats({
+                        answer_statistics: lastMessage.answer_statistics,
+                        correct_answer_id: lastMessage.correct_answer_id,
+                        max: Math.max(...Object.values(lastMessage.answer_statistics).filter((v): v is number => typeof v === 'number'))
+                    });
                     break;
                 case 'update_scores':
                     setResults(lastMessage);
@@ -226,15 +228,15 @@ export default function Game() {
 
                                     <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
                                         {answers.map((answer: any, i: number) => {
-                                            const percentage = questionStats[answer.id] ? (questionStats[answer.id] / questionStats.max) * 100 : 0;
+                                            const percentage = questionStats.answer_statistics[answer.id] ? (questionStats.answer_statistics[answer.id] / questionStats.max) * 100 : 0;
                                             return (
                                                 <div key={answer.id} className="flex flex-col">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-white font-bold text-lg md:text-xl">
+                                                        <span className={`${questionStats.correct_answer_id === answer.id ? 'text-white font-bold' : 'text-gray-400'} text-lg md:text-xl`}>
                                                             {answer.answer_text}
                                                         </span>
                                                         <span className="text-white font-bold text-lg md:text-xl">
-                                                            {questionStats[answer.id] || 0} guesses
+                                                            {questionStats.answer_statistics[answer.id] || 0} &nbsp;
                                                         </span>
                                                     </div>
                                                     <ProgressBar progress={percentage} color={(i == 0 && "red") || (i == 1 && "blue") || (i == 2 && "yellow") || (i == 3 && "green") || "white"} className="w-full !bg-white/10" />
