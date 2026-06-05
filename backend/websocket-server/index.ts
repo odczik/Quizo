@@ -208,7 +208,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					}
 
 					if(room.players_answered === room.players.length) {
-						updatePlayerScores(room);
+						showResults(room);
 					}
 					break;
 				case 'skip_question':
@@ -298,7 +298,7 @@ const handleGameLogic = async (room: Room) => {
 
 	setTimeout(() => {
 		sendNextQuestion(room);
-	}, 3000); // Give clients a moment to prepare for the first question
+	}, 2000); // Give clients a moment to prepare for the first question
 }
 
 const loadQuestionsIntoMemory = async (room: Room) => {
