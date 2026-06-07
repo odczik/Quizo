@@ -165,10 +165,11 @@ export default function Game() {
                     ) : (
                         results ? (
                             <div className="flex-1 flex flex-col items-center justify-center w-full p-4 overflow-y-auto">
-                                <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
-                                    <h2 className="text-3xl md:text-5xl font-bold text-center text-white drop-shadow-md mb-6">
-                                        Leaderboard
-                                    </h2>
+                                <h2 className="text-3xl md:text-5xl font-bold text-center text-white drop-shadow-md mb-6">
+                                    Leaderboard
+                                </h2>
+
+                                <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 border border-white/10">
                                     <div className="flex flex-col space-y-3">
                                         {results.players && [...results.players].sort((a: any, b: any) => b.points - a.points).map((player: any, index: number) => (
                                             <div 
@@ -196,37 +197,28 @@ export default function Game() {
                                             </div>
                                         ))}
                                     </div>
-                                    {isHost && (
-                                        <div className="flex justify-center mt-6 pt-4">
-                                            <Button 
-                                                variant="primary" 
-                                                className="text-lg px-8 py-3 shadow-lg"
-                                                onClick={() => sendMessage("next_question")}
-                                            >
-                                                {question.question_index == question.questions_length ? "Finish Game" : "Next Question"}
-                                            </Button>
-                                        </div>
-                                    )}
                                 </div>
+
+                                {isHost && (
+                                    <div className="flex justify-center mt-6 pt-4">
+                                        <Button 
+                                            variant="secondary" 
+                                            className="text-lg px-8 py-3 shadow-lg"
+                                            onClick={() => sendMessage("next_question")}
+                                        >
+                                            {question.question_index == question.questions_length ? "Finish Game" : "Next Question"}
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             questionStats ? (
                                 <div className="flex-1 flex flex-col items-center justify-center w-full p-4">
-                                    <h2 className="text-3xl md:text-5xl font-bold text-center text-white drop-shadow-md mb-6">
+                                    <h2 className="text-3xl md:text-5xl font-bold text-center text-white mb-2 drop-shadow-md">
                                         Answer Statistics
                                     </h2>
 
-                                    <div className="flex justify-center mt-6 pt-4">
-                                        <Button 
-                                            variant="primary" 
-                                            className="text-lg px-8 py-3 shadow-lg"
-                                            onClick={() => sendMessage("show_leaderboard")}
-                                        >
-                                            Next
-                                        </Button>
-                                    </div>
-
-                                    <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
+                                    <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-6 border border-white/10">
                                         {answers.map((answer: any, i: number) => {
                                             const percentage = questionStats.answer_statistics[answer.id] ? (questionStats.answer_statistics[answer.id] / questionStats.max) * 100 : 0;
                                             return (
@@ -243,6 +235,16 @@ export default function Game() {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+
+                                    <div className="flex justify-center pt-4">
+                                        <Button 
+                                            variant="secondary" 
+                                            className="text-lg px-8 py-3 shadow-lg"
+                                            onClick={() => sendMessage("show_leaderboard")}
+                                        >
+                                            Next
+                                        </Button>
                                     </div>
                                 </div>
                             ) : (
@@ -297,10 +299,12 @@ export default function Game() {
             return (
                 <div className="flex flex-col items-center justify-center p-4 min-h-screen w-full">
                     {finalScores ? (
-                        <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-auto border border-white/10">
-                            <h2 className="text-4xl md:text-6xl font-bold text-center text-white drop-shadow-md mb-6">
-                                Final Scores
-                            </h2>
+                        <>
+                        <h2 className="text-4xl md:text-6xl font-bold text-center text-white drop-shadow-md mb-6">
+                            Final Scores
+                        </h2>
+
+                        <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 border border-white/10">
                             <div className="flex flex-col space-y-3">
                                 {[...finalScores].sort((a: any, b: any) => b.points - a.points).map((player: any, index: number) => (
                                     <div 
@@ -342,6 +346,8 @@ export default function Game() {
                                 ))}
                             </div>
                         </div>
+
+                        </>
                     ) : (
                         <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in zoom-in duration-500">
                             <h2 className="text-3xl md:text-5xl font-bold text-white/80 drop-shadow-md">
