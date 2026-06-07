@@ -126,26 +126,33 @@ export default function QuizDetail() {
 
             {quiz.questions && quiz.questions.length > 0 && (
                 <Card className="p-8 shadow-lg mt-4">
-                    <h2 className="text-2xl font-bold mb-4">Questions</h2>
-                    <div className="space-y-4">
-                        {quiz.questions.map((question: any, index: number) => (
-                            <div key={question.id} className="p-6 rounded-lg shadow-lg">
-                                <p className="font-semibold">{index + 1}. {question.question_text}</p>
-                                <Button onClick={() => toggleShowAnswer(index)} variant="secondary" className="mt-2">
-                                    {showAnswers[index] ? 'Hide Answers' : 'Show Answers'}
-                                </Button>
-                                {showAnswers[index] && (
-                                    <ul className="mt-2 list-disc list-inside">
-                                        {question.answers.map((answer: any) => (
-                                            <li key={answer.id} className={`${answer.is_correct ? 'text-green-500 font-bold' : ''}`}>
-                                                {answer.answer_text}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                    <details className="group">
+                        <summary className="flex items-center justify-between cursor-pointer text-2xl font-bold mb-4 p-2 rounded-lg">
+                            <span>Questions</span>
+                            <svg className="w-6 h-6 transition-transform duration-200 group-open:rotate-90" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </summary>
+                        <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            {quiz.questions.map((question: any, index: number) => (
+                                <div key={question.id} className="p-6 rounded-lg shadow-lg">
+                                    <p className="font-semibold">{index + 1}. {question.question_text}</p>
+                                    <Button onClick={() => toggleShowAnswer(index)} variant="secondary" className="mt-2">
+                                        {showAnswers[index] ? 'Hide Answers' : 'Show Answers'}
+                                    </Button>
+                                    {showAnswers[index] && (
+                                        <ul className="mt-2 list-disc list-inside">
+                                            {question.answers.map((answer: any) => (
+                                                <li key={answer.id} className={`${answer.is_correct ? 'text-green-500 font-bold' : ''}`}>
+                                                    {answer.answer_text}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </details>
                 </Card>
             )}
         </div>
