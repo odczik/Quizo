@@ -187,7 +187,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 					const currentQuestion = room.questions[room.questionIndex - 1];
 					const selectedAnswer = currentQuestion.answers?.find(a => a.id === data.answerId);
 
-					room.answer_statistics[data.answerId] = (room.answer_statistics[data.answerId] || 0) + 1;
+					room.answer_statistics[data.answerId].number = (room.answer_statistics[data.answerId].number || 0) + 1;
 
 					if (selectedAnswer && selectedAnswer.is_correct) {
 						// Simple scoring: More points for faster answers
@@ -362,6 +362,10 @@ const sendNextQuestion = (room: Room) => {
 		strippedQuestion.time_limit = question.time_limit;
 	}
 
+	question.answers?.forEach((a: any) => {
+		room.answer_statistics[a.id] = { number: 0, is_correct: a.is_correct };
+	});
+
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ type: 'next_question' }));
 	});
@@ -411,9 +415,10 @@ const updatePlayerScores = (room: Room) => {
 	// Send answer statistics to the host for display
 	room.host_ws?.send(JSON.stringify({
 		type: 'question_results',
-		answer_statistics: room.answer_statistics,
-		correct_answer_id: room.questions[room.questionIndex - 1].answers?.find(a => a.is_correct)?.id || null
+		answer_statistics: room.answer_statistics
 	}));
+
+	room.answer_statistics = {}; // Reset for the next question
 
 	executeForEachPlayer(room, (player) => {
 		player.send(JSON.stringify({ 
