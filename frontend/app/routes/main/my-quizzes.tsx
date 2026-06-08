@@ -57,7 +57,7 @@ function QuizCard({ quiz, showEdit }: { quiz: Quiz; showEdit: boolean }) {
                     </Link>
                     {showEdit && (
                         <Link
-                            to={`/quiz/create?edit=${quiz.id}`}
+                            to={`/quiz/edit?edit=${quiz.id}`}
                             className="font-semibold text-gray-700 bg-gray-100 px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
                         >
                             Edit

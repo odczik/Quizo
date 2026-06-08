@@ -19,6 +19,7 @@ export default [
         layout("routes/layouts/protected-layout.tsx", [
             route("profile", "routes/main/profile.tsx"),
             route("quiz/create", "routes/main/quizCreation/create.tsx"),
+            route("quiz/edit", "routes/main/quizCreation/edit.tsx"),
             route("profile/quizzes", "routes/main/my-quizzes.tsx"),
         ]),
     ]),
