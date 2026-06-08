@@ -275,6 +275,7 @@ export default function Game() {
                                                     key={answer.id} 
                                                     color={index + 1}
                                                     text={answer.answer_text} 
+                                                    showShapeOnly={window.innerWidth < 640}
                                                     className="h-full w-full rounded-md font-bold text-xl md:text-2xl shadow-sm transition-transform active:scale-[0.98]"
                                                     onClick={() => {
                                                         sendMessage("submit_answer", { answerId: answer.id });
