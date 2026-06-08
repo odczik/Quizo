@@ -219,7 +219,6 @@ export default function Game() {
 
                                     <div className="w-full max-w-3xl bg-black/30 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col space-y-6 my-6 border border-white/10">
                                         {answers.map((answer: any, i: number) => {
-                                            console.log(answer)
                                             const percentage = questionStats.answer_statistics[answer.id].number ? (questionStats.answer_statistics[answer.id].number / questionStats.max) * 100 : 0;
                                             return (
                                                 <div key={answer.id} className="flex flex-col">
