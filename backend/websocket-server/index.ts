@@ -201,7 +201,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
 						const pointsEarned = Math.round(maxPoints * timeFraction);
 
 						ws.points = (ws.points || 0) + pointsEarned;
-						ws.aquiredPoints = pointsEarned;
+						ws.acquiredPoints = pointsEarned;
 						ws.was_correct = true;
 					} else {
 						ws.was_correct = false;
@@ -398,11 +398,11 @@ const sendNextQuestion = (room: Room) => {
 const showLeaderboard = (room: Room) => {
 	room.host_ws?.send(JSON.stringify({
 		type: 'update_scores',
-		players: room.players.map(p => ({ username: p.username, points: p.points, aquiredPoints: p.aquiredPoints }))
+		players: room.players.map(p => ({ username: p.username, points: p.points, acquiredPoints: p.acquiredPoints }))
 	}));
 
 	executeForEachPlayer(room, (player) => {
-		player.aquiredPoints = 0;
+		player.acquiredPoints = 0;
 		player.was_correct = null;
 	}, { excludeHost: true });
 }
@@ -424,7 +424,7 @@ const updatePlayerScores = (room: Room) => {
 		player.send(JSON.stringify({ 
 			type: 'answer_result',
 			correct: player.was_correct || false,
-			points: player.aquiredPoints || 0
+			points: player.acquiredPoints || 0
 		}));
 	}, { excludeHost: true });
 

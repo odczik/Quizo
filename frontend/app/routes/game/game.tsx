@@ -184,9 +184,9 @@ export default function Game() {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center space-x-4">
-                                                    {player.aquiredPoints > 0 && (
+                                                    {player.acquiredPoints > 0 && (
                                                         <span className="text-sm md:text-base font-bold text-green-300 bg-black/40 px-3 py-1 rounded-full border border-white/5 shadow-inner">
-                                                            +{player.aquiredPoints}
+                                                            +{player.acquiredPoints}
                                                         </span>
                                                     )}
                                                     <span className="font-bold text-2xl md:text-3xl text-white drop-shadow-sm min-w-[3rem] text-right">
