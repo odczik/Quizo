@@ -32,4 +32,24 @@ class Quiz extends Model
         return $this->belongsToMany(User::class, 'quiz_likes')
             ->withPivot('liked_at');
     }
+
+    /**
+     * Get the image URL. Converts relative storage paths to full URLs.
+     */
+    protected function image(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function ($value) {
+                if (!$value) {
+                    return null;
+                }
+                // If it's already a full URL (http, https, or data URL), return as-is
+                if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, 'data:')) {
+                    return $value;
+                }
+                // Otherwise, it's a relative storage path, convert to public URL
+                return '/storage/' . $value;
+            }
+        );
+    }
 }

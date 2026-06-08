@@ -310,29 +310,7 @@ export default function CreateQuiz() {
                                 className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                             />
 
-                            <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Question Type</label>
-                                    <select
-                                        value={question.type}
-                                        onChange={(event) => updateQuestionType(questionIndex, event.target.value as "multiple_choice" | "fill_in_blank")}
-                                        className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                    >
-                                        <option value="multiple_choice">Multiple Choice (4 answers)</option>
-                                        <option value="fill_in_blank">Fill in the Blank</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Time to answer (seconds)</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        value={question.timeLimit}
-                                        onChange={(event) => updateQuestionTimeLimit(questionIndex, Number(event.target.value))}
-                                        className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                    />
-                                </div>
-                            </div>
+
 
                             {question.type === "multiple_choice" && (
                                 <>

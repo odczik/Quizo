@@ -46,17 +46,16 @@ export default function EditQuiz() {
         if (question.type === "fill_in_blank") {
             return !!question.answerOptions[0]?.text.trim();
         }
-        return (
-            !question.answerOptions.some((option: any) => !option.text.trim()) &&
-            question.answerOptions.some((option: any) => option.correct)
-        );
+        
+        // For multiple choice, only validate non-empty options
+        const nonEmptyOptions = question.answerOptions.filter((option: any) => option.text.trim());
+        if (nonEmptyOptions.length === 0) return false; // Must have at least one answer
+        if (!nonEmptyOptions.some((option: any) => option.correct)) return false; // At least one must be correct
+        return true;
     };
 
     const activeQuestions = questions.filter((question) => !isQuestionPlaceholder(question));
-    const hasValidQuestion = activeQuestions.some(isQuestionValid);
-    const hasInvalidQuestion = activeQuestions.some((question) => !isQuestionValid(question));
-
-    const isSubmitDisabled = !quizTitle.trim() || !hasValidQuestion || hasInvalidQuestion;
+    const isSubmitDisabled = !quizTitle.trim() || activeQuestions.some((question) => !isQuestionValid(question));
 
     const hasCorrectAnswer = (questionIndex: number) =>
         questions[questionIndex].answerOptions.some((option) => option.correct);
@@ -415,29 +414,7 @@ export default function EditQuiz() {
                                 className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                             />
 
-                            <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Question Type</label>
-                                    <select
-                                        value={question.type}
-                                        onChange={(event) => updateQuestionType(questionIndex, event.target.value as "multiple_choice" | "fill_in_blank")}
-                                        className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                    >
-                                        <option value="multiple_choice">Multiple Choice (4 answers)</option>
-                                        <option value="fill_in_blank">Fill in the Blank</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Time to answer (seconds)</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        value={question.timeLimit}
-                                        onChange={(event) => updateQuestionTimeLimit(questionIndex, Number(event.target.value))}
-                                        className="w-full rounded-2xl border border-gray-300 px-5 py-4 text-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                    />
-                                </div>
-                            </div>
+
 
                             {question.type === "multiple_choice" && (
                                 <>

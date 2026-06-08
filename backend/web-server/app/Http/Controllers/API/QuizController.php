@@ -40,10 +40,21 @@ class QuizController extends Controller
             'questions' => 'sometimes|array',
             'questions.*.questionTitle' => 'required_with:questions|string|max:65535',
             'questions.*.type' => 'required_with:questions|string|in:multiple_choice,fill_in_blank',
+            'questions.*.timeLimit' => 'sometimes|integer|min:0',
             'questions.*.answerOptions' => 'required_with:questions|array',
             'questions.*.answerOptions.*.text' => 'required_with:questions|string|max:65535',
             'questions.*.answerOptions.*.correct' => 'required_with:questions|boolean',
         ]);
+
+        // Handle image upload
+        $imageValue = null;
+        if ($request->hasFile('image')) {
+            // If it's a file upload, store it
+            $imageValue = $request->file('image')->store('quiz-images', 'public');
+        } elseif ($request->has('image') && $request->input('image')) {
+            // If it's a string (URL or data URL), use it as-is
+            $imageValue = $request->input('image');
+        }
 
         // Create the quiz using the validated data
         $quiz = Quiz::create([
@@ -52,7 +63,7 @@ class QuizController extends Controller
             'created_by' => Auth::id(),
             'is_public' => $request->is_public ?? false,
             'default_time_limit' => $request->default_time_limit ?? 20,
-            'image' => $request->image ?? null,
+            'image' => $imageValue,
         ]);
 
         // If questions were provided, create them along with their answers
@@ -61,6 +72,7 @@ class QuizController extends Controller
                 $question = $quiz->questions()->create([
                     'question_text' => $q['questionTitle'] ?? '',
                     'question_type' => $q['type'] ?? 'multiple_choice',
+                    'time_limit' => $q['timeLimit'] ?? 20,
                     'order_index' => $idx,
                 ]);
 
@@ -109,9 +121,68 @@ class QuizController extends Controller
             'description' => 'nullable|string',
             'is_public' => 'nullable|boolean',
             'default_time_limit' => 'nullable|integer|min:0',
+
+            // Optional questions payload
+            'questions' => 'sometimes|array',
+            'questions.*.questionTitle' => 'required_with:questions|string|max:65535',
+            'questions.*.type' => 'required_with:questions|string|in:multiple_choice,fill_in_blank',
+            'questions.*.timeLimit' => 'sometimes|integer|min:0',
+            'questions.*.answerOptions' => 'required_with:questions|array',
+            'questions.*.answerOptions.*.text' => 'required_with:questions|string|max:65535',
+            'questions.*.answerOptions.*.correct' => 'required_with:questions|boolean',
         ]);
 
-        $quiz->update($request->all());
+        // Handle image update
+        $imageValue = $quiz->image;
+        if ($request->hasFile('image')) {
+            // If it's a file upload, store it
+            $imageValue = $request->file('image')->store('quiz-images', 'public');
+        } elseif ($request->has('image') && $request->input('image')) {
+            // If it's a string (URL or data URL), use it as-is
+            $imageValue = $request->input('image');
+        }
+
+        // Update quiz metadata
+        $quiz->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'is_public' => $request->is_public ?? $quiz->is_public,
+            'default_time_limit' => $request->default_time_limit ?? $quiz->default_time_limit,
+            'image' => $imageValue,
+        ]);
+
+        // If questions were provided, delete all existing and recreate them
+        if ($request->has('questions') && is_array($request->questions)) {
+            // Delete all existing questions for this quiz
+            $quiz->questions()->delete();
+
+            // Create new questions with answers
+            foreach ($request->questions as $idx => $q) {
+                $question = $quiz->questions()->create([
+                    'question_text' => $q['questionTitle'] ?? '',
+                    'question_type' => $q['type'] ?? 'multiple_choice',
+                    'time_limit' => $q['timeLimit'] ?? 20,
+                    'order_index' => $idx,
+                ]);
+
+                // Prepare answers for DB: answers table expects answer_text and is_correct
+                $answersToCreate = [];
+                if (!empty($q['answerOptions']) && is_array($q['answerOptions'])) {
+                    foreach ($q['answerOptions'] as $ans) {
+                        $answersToCreate[] = [
+                            'answer_text' => $ans['text'] ?? '',
+                            'is_correct' => $ans['correct'] ?? false,
+                        ];
+                    }
+                }
+
+                if (!empty($answersToCreate)) {
+                    $question->answers()->createMany($answersToCreate);
+                }
+            }
+        }
+
+        $quiz->load('questions.answers');
 
         return response()->json($quiz);
     }
