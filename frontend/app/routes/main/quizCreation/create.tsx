@@ -177,6 +177,20 @@ export default function CreateQuiz() {
         return new Blob([array], { type: mime });
     };
 
+    // helper: append questions/answers to FormData using PHP-style bracketed keys
+    const appendQuestionsToForm = (form: FormData, questionsToAppend: any[]) => {
+        questionsToAppend.forEach((question, qi) => {
+            form.append(`questions[${qi}][question_text]`, question.questionTitle ?? "");
+            form.append(`questions[${qi}][question_type]`, question.type === "fill_in_blank" ? "fill_in_blank" : "multiple_choice");
+            form.append(`questions[${qi}][time_limit]`, String(question.timeLimit ?? 20));
+
+            (question.answerOptions || []).forEach((answer: any, ai: number) => {
+                form.append(`questions[${qi}][answers][${ai}][answer_text]`, answer.text ?? "");
+                form.append(`questions[${qi}][answers][${ai}][is_correct]`, answer.correct ? "1" : "0");
+            });
+        });
+    };
+
     const addQuizToDatabase = async () => {
         setIsSaving(true);
         setSaveError(null);
@@ -187,7 +201,8 @@ export default function CreateQuiz() {
             if (quizImage && quizImage.startsWith("data:")) {
                 const form = new FormData();
                 form.append("title", quizTitle);
-                form.append("questions", JSON.stringify(questions));
+                // append questions as structured array so Laravel validation `array` passes
+                appendQuestionsToForm(form, questions);
                 // Send as 1 or 0 for boolean in form data
                 form.append("is_public", isPublic ? "1" : "0");
                 const blob = dataURLToBlob(quizImage);
