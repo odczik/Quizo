@@ -5,9 +5,11 @@ use App\Http\Controllers\API\AuthenticationController;
 use App\Http\Controllers\API\QuizController;
 
 Route::middleware('web')->group(function () {
-    Route::post('user/register', [AuthenticationController::class, 'register']);
-    Route::post('user/login', [AuthenticationController::class, 'login']);
-
+    Route::post('user/register', [AuthenticationController::class, 'register'])
+    ->middleware('throttle:3,1');
+    Route::post('user/login', [AuthenticationController::class, 'login'])
+        ->middleware('throttle:5,1');
+    
     Route::middleware('auth:sanctum')->group(function () {
         // User Management API routes
         Route::get('user/profile', [AuthenticationController::class, 'getUserData']); 
