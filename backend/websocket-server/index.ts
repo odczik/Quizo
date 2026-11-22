@@ -11,7 +11,10 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.en
 dotenv.config({ path: path.resolve(__dirname, envFile) });
 
 const PORT = Number(process.env.PORT) || 8080;
-const wss = new WebSocketServer({ port: PORT });
+const wss = new WebSocketServer({
+    host: '127.0.0.1',
+    port: PORT
+});
 
 const rooms: Record<string, Room> = {}; // In-memory storage for game rooms and their players
 
